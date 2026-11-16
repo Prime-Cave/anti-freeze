@@ -2,7 +2,7 @@
 SHELL := /bin/bash
 APP_NAME   := Headroom
 VERSION    ?= $(shell git describe --tags --always --dirty 2>/dev/null | sed 's/^v//' || echo 0.0.0)
-PLIST_VER  := $(shell echo "$(VERSION)" | grep -Eo '^[0-9]+(\.[0-9]+){0,2}' || echo 0.1.0)
+PLIST_VER  := $(shell echo "$(VERSION)" | grep -Eo '^[0-9]+(\.[0-9]+){1,2}' || echo 0.1.0)
 OUT        := build/out
 APP        := $(OUT)/$(APP_NAME).app
 DMG        := $(OUT)/$(APP_NAME).dmg
@@ -18,7 +18,7 @@ export CGO_LDFLAGS := -mmacosx-version-min=$(MINOS)
 # e.g. SIGN_IDENTITY="Developer ID Application: …" make app. Never commit it.
 SIGN_IDENTITY ?= -
 
-.PHONY: all frontend build run app dmg test race vet lint check stress clean sample icon
+.PHONY: all frontend build run app dmg test race integration vet lint check stress clean sample icon
 
 all: app
 
@@ -67,6 +67,11 @@ test:
 
 race:
 	go test -race ./...
+
+# Launches and quits a throwaway helper app through the real AppKit path.
+# HEADROOM_TEST_TRASH=1 also moves one temp file to your Trash.
+integration:
+	go test -tags integration -v ./internal/macos/
 
 vet:
 	go vet ./...

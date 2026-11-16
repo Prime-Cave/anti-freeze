@@ -16,6 +16,7 @@ type wailsUI struct {
 	tray      *application.SystemTray
 	dropdown  *application.WebviewWindow
 	dashboard *application.WebviewWindow
+	safety    *application.WebviewWindow
 
 	mu          sync.Mutex
 	lastLevel   tray.Level
@@ -27,7 +28,7 @@ type wailsUI struct {
 func (u *wailsUI) Emit(event string, data any) { u.app.Event.Emit(event, data) }
 
 func (u *wailsUI) PanelsVisible() bool {
-	return u.dropdown.IsVisible() || u.dashboard.IsVisible()
+	return u.dropdown.IsVisible() || u.dashboard.IsVisible() || u.safety.IsVisible()
 }
 
 var stateLabels = map[analyzer.State]string{
@@ -62,7 +63,7 @@ func (u *wailsUI) SetTrayIcon(state analyzer.State, memFill float64, simple bool
 func (u *wailsUI) ShowDashboard(section string) {
 	u.dashboard.Show()
 	u.dashboard.Focus()
-	u.app.Show() // bring the (accessory) app forward
+	application.InvokeAsync(u.app.Show) // bring the (accessory) app forward; AppKit needs the main thread
 	u.dashboard.EmitEvent("navigate", section)
 }
 
@@ -77,4 +78,32 @@ func (u *wailsUI) ResizeDropdown(height int) {
 	if u.dropdown.IsVisible() {
 		_ = u.tray.PositionWindow(u.dropdown, 6)
 	}
+}
+
+// ShowSafety opens the safety check window centred on screen, in front.
+func (u *wailsUI) ShowSafety(appKey string) {
+	u.safety.Center()
+	u.safety.Show()
+	application.InvokeAsync(u.app.Show)
+	u.safety.Focus()
+	u.safety.EmitEvent("safety-open", appKey)
+}
+
+func (u *wailsUI) HideSafety() { u.safety.Hide() }
+
+func (u *wailsUI) ResizeSafety(height int) {
+	if _, h := u.safety.Size(); h != height {
+		u.safety.SetSize(safetyWidth, height)
+		u.safety.Center()
+	}
+}
+
+// SaveFileDialog shows the macOS save panel, attached to the dashboard.
+func (u *wailsUI) SaveFileDialog(defaultName string) (string, error) {
+	return u.app.Dialog.SaveFile().
+		SetFilename(defaultName).
+		AddFilter("CSV", "*.csv").
+		CanCreateDirectories(true).
+		AttachToWindow(u.dashboard).
+		PromptForSingleSelection()
 }

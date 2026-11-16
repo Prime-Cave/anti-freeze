@@ -22,6 +22,7 @@ import (
 	"github.com/Prime-Cave/headroom/internal/app"
 	"github.com/Prime-Cave/headroom/internal/collector"
 	"github.com/Prime-Cave/headroom/internal/machine"
+	"github.com/Prime-Cave/headroom/internal/macos"
 	"github.com/Prime-Cave/headroom/internal/store"
 	"github.com/Prime-Cave/headroom/internal/tray"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -30,7 +31,10 @@ import (
 
 var version = "dev"
 
-const dropdownWidth = 360
+const (
+	dropdownWidth = 360
+	safetyWidth   = 420
+)
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "sample" {
@@ -73,7 +77,8 @@ func main() {
 		profile = loadProfile(st, native)
 	}
 
-	cfg := app.Config{Collector: col, Store: st, Profile: profile, Demo: demo != "", Logger: logger}
+	cfg := app.Config{Collector: col, Store: st, Profile: profile, Demo: demo != "", Logger: logger,
+		System: macos.System{}, AppIcon: macos.AppIconPNG}
 	if selftest {
 		cfg.Selftest = func(page, text string) { fmt.Printf("--- %s ---\n%s\n", page, text) }
 	}
@@ -119,16 +124,38 @@ func main() {
 		e.Cancel()
 	})
 
-	ui := &wailsUI{app: wapp, tray: tr, dropdown: dropdown, dashboard: dashboard}
+	// The safety check (section 7.5): its own small window so it can appear
+	// from a notification without the dropdown. 420 px wide, radius 14.
+	safety := wapp.Window.NewWithOptions(application.WebviewWindowOptions{
+		Name: "safety", Title: "Quit app", URL: "/safety.html", Width: safetyWidth, Height: 320,
+		Frameless: true, AlwaysOnTop: true, Hidden: true, DisableResize: true,
+		BackgroundType:             application.BackgroundTypeTransparent,
+		Mac:                        application.MacWindow{Backdrop: application.MacBackdropTransparent},
+		DefaultContextMenuDisabled: true,
+	})
+	safety.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
+		svc.CloseSafetyCheck()
+		e.Cancel()
+	})
+
+	ui := &wailsUI{app: wapp, tray: tr, dropdown: dropdown, dashboard: dashboard, safety: safety}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	wapp.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
+		// Notifications need the .app bundle; without it they are simply off.
+		if n := newNotifier(svc.HandleNotificationAction); n != nil {
+			svc.SetNotifier(n)
+			if !selftest {
+				go svc.AskNotificationsOnce()
+			}
+		}
 		go svc.Run(ctx, ui)
 		if selftest {
 			go func() {
 				time.Sleep(2 * time.Second)
 				application.InvokeSync(func() { fmt.Println(tray.Inspect()) })
+				fmt.Printf("notifications: %+v\n", svc.NotificationStatus())
 				// Render both pages and have them report their text back.
 				dropdown.Show()
 				dashboard.Show()
@@ -136,6 +163,18 @@ func main() {
 				js := "window.__headroomReport && window.__headroomReport()"
 				dropdown.ExecJS(js)
 				dashboard.ExecJS(js)
+				// Open the safety check for the suggested app (demo data only:
+				// the selftest never confirms a quit).
+				for _, sg := range svc.Status().Suggestions {
+					if sg.Kind == "quit" {
+						if err := svc.OpenSafetyCheck(sg.AppKey); err != nil {
+							fmt.Println("safety:", err)
+						}
+						time.Sleep(2 * time.Second)
+						safety.ExecJS(js)
+						break
+					}
+				}
 				time.Sleep(2 * time.Second)
 				wapp.Quit()
 			}()

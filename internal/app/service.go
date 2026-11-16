@@ -10,9 +10,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/Prime-Cave/headroom/internal/actions"
 	"github.com/Prime-Cave/headroom/internal/analyzer"
 	"github.com/Prime-Cave/headroom/internal/collector"
 	"github.com/Prime-Cave/headroom/internal/machine"
+	"github.com/Prime-Cave/headroom/internal/notify"
 	"github.com/Prime-Cave/headroom/internal/store"
 )
 
@@ -33,6 +35,11 @@ type UI interface {
 	ShowDashboard(section string)
 	HideDropdown()
 	ResizeDropdown(height int)
+	ShowSafety(appKey string)
+	HideSafety()
+	ResizeSafety(height int)
+	// SaveFileDialog asks where to save a file; "" if cancelled.
+	SaveFileDialog(defaultName string) (string, error)
 }
 
 // Config wires the service.
@@ -42,6 +49,11 @@ type Config struct {
 	Profile   machine.Profile
 	Demo      bool // replaying synthetic data: actions never touch real apps or files
 	Logger    *slog.Logger
+	// System performs actions (AppKit in the app). Demo mode never calls it
+	// for quits or trash.
+	System actions.System
+	// AppIcon renders an app bundle's icon as PNG.
+	AppIcon func(bundlePath string) ([]byte, bool)
 	// Selftest, if set, receives rendered page text (headroom --selftest).
 	Selftest func(page, text string)
 }
@@ -57,6 +69,13 @@ type Service struct {
 	wake     chan struct{}
 	started  atomic.Bool
 	hooks    []func(analyzer.Status) // extra per-sample consumers (notifications)
+
+	act            *actions.Manager
+	decider        *notify.Decider
+	pendingSafety  string
+	notifier       Notifier // nil when notifications are unavailable
+	iconCache      map[string]string
+	forceProcesses atomic.Bool // re-read processes now (after a quit)
 }
 
 // New creates the service. Call Run to start sampling.
@@ -64,11 +83,12 @@ func New(cfg Config) *Service {
 	if cfg.Logger == nil {
 		cfg.Logger = slog.Default()
 	}
-	s := &Service{cfg: cfg, log: cfg.Logger, wake: make(chan struct{}, 1)}
+	s := &Service{cfg: cfg, log: cfg.Logger, wake: make(chan struct{}, 1), iconCache: map[string]string{}}
 	s.settings = loadSettings(cfg.Store.Settings())
 	s.cfg.Store.TenMinRetention = time.Duration(s.settings.RetentionDays) * 24 * time.Hour
 	s.an = analyzer.New(s.thresholds())
 	s.an.OnEpisode = s.onEpisode
+	s.setupActions()
 	return s
 }
 
@@ -126,7 +146,7 @@ func (s *Service) Run(ctx context.Context, ui UI) {
 		if ui.PanelsVisible() {
 			interval = FastInterval
 		}
-		if now.Sub(lastProc) >= ProcessInterval {
+		if s.forceProcesses.Swap(false) || now.Sub(lastProc) >= ProcessInterval {
 			s.sampleProcesses()
 			lastProc = now
 		}

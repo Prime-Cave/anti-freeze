@@ -34,3 +34,14 @@ Differences and fixes found while checking:
 * `npm run contrast` checks every text/background pairing the UI uses, in both themes, against 4.5:1. Two pairings from the spec's palette fall short: `ink-3` on `critical-wash` (light, 4.39:1) and `ink-3` on `btn-2-hover` (dark, 4.01:1). The tokens stay as specified; the UI never uses those pairings, and the script lists them as forbidden.
 * One colour token was added, built from spec values only: `--on-accent` (text on the primary button: white in light mode, canvas in dark mode, which keeps 4.5:1 on the dark `--ok`).
 * The safety check opens in its own 420 px window rather than inside the 360 px dropdown, so the dropdown, notifications and dashboard all use the same dialog.
+
+## M6: actions and notifications
+
+* **Quit needs a fresh safety check.** `PrepareQuit` returns a random single-use token that expires after 2 minutes. `ConfirmQuit` refuses anything else, and checks again that the app has the same process ID and is still not protected. Tested with a fake process table (`internal/actions`).
+* **Graceful quit was checked for real** against a throwaway helper app that the integration test builds and launches (`make integration`). No other app was quit while building Headroom.
+* **Force quit** needs the hidden setting turned on, a token, and a second confirmation. Notifications never offer it.
+* **Disk actions never delete.** Items can only be revealed in Finder or moved to the Trash (`NSFileManager trashItemAtURL`). Trash requests are limited to items strictly inside Downloads, `~/Library/Caches` and the developer folders. Items reached through a symlink are refused, and the file must be the same one (device + inode) at confirmation as at review. The Trash itself is only measured and opened, never emptied. The real Trash call is opt-in in the integration test (`HEADROOM_TEST_TRASH=1`) and was not run here, to avoid putting a file in your Trash. Logic is covered by unit tests with a fake Trash.
+* **Folder access.** Measuring Downloads makes macOS ask once for access to that folder. A refused or protected folder shows "Needs Full Disk Access to measure", and Headroom never asks for Full Disk Access.
+* **Notifications** use `UNUserNotificationCenter` through the Wails notifications service. The service is started directly rather than bound, so the web UI can't send notifications. They only work from the signed `.app` bundle; elsewhere they are off. Interruption level is "active", so Focus modes silence them. The permission prompt appears once, on first launch.
+* **No alert for the state at launch.** If the Mac is already tight when Headroom starts, the icon shows it, but no notification is sent. Alerts are only for changes for the worse.
+* **Main-thread fix.** Bringing the app forward (`App.Show`) from a bound call crashed because AppKit needs the main thread. It's now dispatched to the main thread. The selftest opens the dashboard and the safety window to cover this.

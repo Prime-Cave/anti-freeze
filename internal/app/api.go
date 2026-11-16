@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/Prime-Cave/headroom/internal/actions"
 	"github.com/Prime-Cave/headroom/internal/analyzer"
 	"github.com/Prime-Cave/headroom/internal/store"
 )
@@ -24,6 +25,39 @@ func (a *API) OpenDashboard(section string)               { a.s.OpenDashboard(se
 func (a *API) HideDropdown()                              { a.s.HideDropdown() }
 func (a *API) ResizeDropdown(height int)                  { a.s.ResizeDropdown(height) }
 func (a *API) PanelOpened()                               { a.s.Wake() }
+
+// Safety check and actions (section 5). Quitting needs a token from
+// PrepareQuit; force quit also needs the setting on and a second
+// confirmation; files are only ever moved to the Trash.
+func (a *API) OpenSafetyCheck(appKey string) error { return a.s.OpenSafetyCheck(appKey) }
+func (a *API) PendingSafetyCheck() string          { return a.s.PendingSafetyCheck() }
+func (a *API) CloseSafetyCheck()                   { a.s.CloseSafetyCheck() }
+func (a *API) ResizeSafety(height int)             { a.s.ResizeSafety(height) }
+func (a *API) PrepareQuit(appKey string) (actions.SafetyCheck, error) {
+	return a.s.PrepareQuit(appKey)
+}
+func (a *API) ConfirmQuit(token string) (actions.Result, error) { return a.s.ConfirmQuit(token) }
+func (a *API) ConfirmForceQuit(token, confirmation string) (actions.Result, error) {
+	return a.s.ConfirmForceQuit(token, confirmation)
+}
+func (a *API) DiskReport(scan bool) actions.DiskReport { return a.s.DiskReport(scan) }
+func (a *API) LargeFiles(placePath string) ([]actions.LargeFile, error) {
+	return a.s.LargeFiles(placePath)
+}
+func (a *API) PlanTrash(paths []string) (actions.TrashPlan, error) { return a.s.PlanTrash(paths) }
+func (a *API) ConfirmTrash(token string) (actions.Result, error)   { return a.s.ConfirmTrash(token) }
+func (a *API) RevealInFinder(path string) error                    { return a.s.RevealInFinder(path) }
+func (a *API) OpenTrash()                                          { a.s.OpenTrash() }
+func (a *API) AppIcon(bundlePath string) string                    { return a.s.AppIcon(bundlePath) }
+
+// History export and delete.
+func (a *API) ExportHistory() (string, error)          { return a.s.ExportHistory() }
+func (a *API) DeleteHistory(confirmation string) error { return a.s.DeleteHistory(confirmation) }
+
+// Notification permission.
+func (a *API) NotificationStatus() NotifyStatus   { return a.s.NotificationStatus() }
+func (a *API) RequestNotifications() NotifyStatus { return a.s.RequestNotifications() }
+func (a *API) OpenNotificationSettings()          { a.s.OpenNotificationSettings() }
 
 // SelftestReport receives the rendered page text during `--selftest` runs and
 // prints it. It does nothing in normal use.

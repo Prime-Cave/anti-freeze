@@ -211,4 +211,5 @@ export interface TrashPlan {
 export interface NotifyStatus {
   authorized: boolean;
   determined: boolean;
+  available: boolean;
 }
