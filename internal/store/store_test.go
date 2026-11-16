@@ -255,4 +255,3 @@ func TestEpisodeRoundTrip(t *testing.T) {
 		t.Fatalf("round trip %+v", got[0])
 	}
 }
-

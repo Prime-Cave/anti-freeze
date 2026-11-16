@@ -27,3 +27,10 @@ Differences and fixes found while checking:
 * **Purgeable** is often 0 on recent macOS; the formula still includes it.
 * **Process grouping** does not use `responsibility_get_pid_responsible_for_pid`. It is not in a public header, and the brief requires public APIs only. Groups come from the outermost `.app` in the executable path plus `NSRunningApplication`.
 * **Extra protection.** Apps under `/System/Library/`, `/usr/`, `/sbin/`, `/bin/` and `/Library/Apple/` are protected too (Control Centre, Notification Centre, Spotlight and so on), on top of the brief's list.
+
+## M5: design tokens and contrast
+
+* Tokens are implemented exactly as specified (`frontend/src/styles/tokens.css`).
+* `npm run contrast` checks every text/background pairing the UI uses, in both themes, against 4.5:1. Two pairings from the spec's palette fall short: `ink-3` on `critical-wash` (light, 4.39:1) and `ink-3` on `btn-2-hover` (dark, 4.01:1). The tokens stay as specified; the UI never uses those pairings, and the script lists them as forbidden.
+* One colour token was added, built from spec values only: `--on-accent` (text on the primary button: white in light mode, canvas in dark mode, which keeps 4.5:1 on the dark `--ok`).
+* The safety check opens in its own 420 px window rather than inside the 360 px dropdown, so the dropdown, notifications and dashboard all use the same dialog.

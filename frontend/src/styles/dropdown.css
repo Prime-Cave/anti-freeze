@@ -1,5 +1,57 @@
-html, body.dropdown { background: transparent; }
+/* Dropdown panel: 360 px wide, radius 12 (section 7.3). */
+html, body.dropdown { background: transparent; overflow: hidden; }
 .panel {
-  width: 360px; margin: 0; background: var(--surface);
+  position: relative; width: 360px; margin: 0;
+  background: var(--surface); color: var(--ink);
   border-radius: var(--r-panel); border: 1px solid var(--line); overflow: hidden;
 }
+.content { display: flex; flex-direction: column; }
+
+/* 1. Status */
+.status { padding: 16px 16px 12px; transition: background var(--t-open) ease-out; }
+.status.tight { background: var(--tight-wash); }
+.status.critical { background: var(--critical-wash); }
+.status-line { display: flex; align-items: center; gap: 8px; }
+.status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
+.status.tight .dot { background: var(--tight); border-radius: 2px; transform: rotate(45deg); }
+.status.critical .dot { background: var(--critical); border-radius: 1px; }
+.status .title { font-size: 15px; font-weight: 600; }
+.status.tight .title { color: var(--tight); }
+.status.critical .title { color: var(--critical); }
+.figure-line { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+.big { font: 600 40px/1.1 var(--font-figure); letter-spacing: -1px; }
+.unit { font-size: 13px; color: var(--ink-2); }
+.forecast { margin-top: 4px; font-size: 13px; color: var(--ink-2); }
+
+/* Sections */
+.sec { padding: 12px 16px; border-top: 1px solid var(--line-soft); }
+.sec h2 { font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 8px; }
+.sec-head { display: flex; justify-content: space-between; align-items: baseline; }
+.sec-head .col-growth { font-size: 11px; color: var(--ink-3); margin-right: 64px; }
+.runway-sec { border-top: none; padding-top: 4px; }
+
+/* 3. Suggestion cards */
+.cards { display: flex; flex-direction: column; gap: 8px; }
+.card { border: 1px solid var(--line); border-radius: var(--r-card); padding: 12px; background: var(--surface); }
+.card p { font-size: 13px; line-height: 1.45; }
+.card-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+/* 4. Apps */
+.apps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.app { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 4px; margin: 0 -4px; border-radius: var(--r-row); }
+.app-name { flex: 1; min-width: 0; display: flex; overflow: hidden; white-space: nowrap; }
+.app-name .nm { overflow: hidden; text-overflow: ellipsis; }
+.app-name .ct { color: var(--ink-3); flex: none; margin-left: 4px; }
+.app .growth { width: 64px; text-align: right; color: var(--ink-2); font-size: 12px; }
+.app .growth.large { color: var(--tight); font-weight: 600; }
+.app .size { width: 60px; text-align: right; }
+
+/* 5. Mini stats */
+.mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mini-item { display: flex; flex-direction: column; gap: 2px; }
+.mini .ml { font-size: 11px; color: var(--ink-3); }
+.mini .mv { font-size: 13px; font-weight: 500; }
+
+/* 6. Footer */
+.foot { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line-soft); }
+.foot .btn:first-child { flex: 1; }
