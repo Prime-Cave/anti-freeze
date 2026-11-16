@@ -28,7 +28,7 @@ Checked by reading the v3.1.0 source, not assumed:
 cmd/anti-freeze/        main: wires everything; `anti-freeze sample` prints one JSON snapshot
 internal/machine/    machine profile (detected on first run) and the thresholds derived from it
 internal/collector/  cgo samplers + Collector interface + Fake (replay) + synthetic scenarios
-internal/analyzer/   state, headroom, forecast, attribution, episodes, learning
+internal/analyzer/   state, spare room, forecast, attribution, episodes, learning
 internal/store/      SQLite: migrations, rollups, retention, export, wipe
 internal/actions/    quit (graceful), reveal in Finder, move to Trash, open Settings panes
 internal/notify/     notifications with action buttons, cooldowns
@@ -66,7 +66,7 @@ Alert sensitivity scales these. *Relaxed*: reserve ×0.75, growth ×1.5, forecas
 ## The "to spare" number
 
 ```
-headroom            = free + reclaimable + purgeable + safe swap allowance
+spare room          = free + reclaimable + purgeable + safe swap allowance
 free+reclaimable+purgeable = memory total − (app memory + wired + compressed)     ← Activity Monitor's "not used"
 safe swap allowance = max(0, min( swap budget − swap used,
                                   disk free (important usage) − disk reserve ))
@@ -78,7 +78,7 @@ safe swap allowance = max(0, min( swap budget − swap used,
 
 1. Swap used and disk free go into rolling 10-minute windows, EWMA-smoothed (α = 0.3).
 2. A least-squares line is fitted to each. The trend counts as **confident** only with ≥ 20 samples spanning ≥ 2 minutes, R² ≥ 0.6, and a slope of at least 2 MB/min.
-3. Swap growth eats headroom directly: `ETA = headroom ÷ swap slope`. Disk loss eats the room swap needs: `ETA = (disk free − floor) ÷ disk loss rate`. The sooner of the two wins.
+3. Swap growth eats spare room directly: `ETA = spare room ÷ swap slope`. Disk loss eats the room swap needs: `ETA = (disk free − floor) ÷ disk loss rate`. The sooner of the two wins.
 4. The 10-minute line lags (it keeps pointing up for minutes after growth stops). So a swap forecast also needs the 3-minute line to still be rising.
 5. Nothing confident, or an ETA over 60 minutes, reads "Steady. Nothing is filling up fast."
 
