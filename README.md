@@ -84,7 +84,7 @@ Watch it react to real memory pressure (allocates memory in a capped child proce
 make stress
 ```
 
-More: [CONTRIBUTING.md](CONTRIBUTING.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/RELEASING.md](docs/RELEASING.md).
+Step by step, including tools to install and troubleshooting: [docs/SETUP.md](docs/SETUP.md). More: [CONTRIBUTING.md](CONTRIBUTING.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/RELEASING.md](docs/RELEASING.md).
 
 ## Security
 
