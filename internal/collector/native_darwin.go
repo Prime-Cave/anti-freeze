@@ -15,6 +15,7 @@ import (
 	"errors"
 	"os"
 	"sync"
+	"syscall"
 	"time"
 	"unsafe"
 )
@@ -25,6 +26,50 @@ type Native struct {
 	lastBusy  uint64
 	lastTotal uint64
 	pidBuf    []C.int
+
+	// The "available for important usage" query costs about 8 ms of CPU,
+	// most of a System() call. It is refreshed every DiskRefresh; in between,
+	// the cached values follow the volume's free space from statfs (a few µs).
+	disk       Disk
+	diskAt     time.Time
+	diskStatfs uint64
+}
+
+// DiskRefresh is how often the full disk capacity query runs.
+const DiskRefresh = time.Minute
+
+func statfsFree() uint64 {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs("/System/Volumes/Data", &st); err != nil {
+		return 0
+	}
+	return st.Bavail * uint64(st.Bsize)
+}
+
+// shift moves v by delta bytes without going below zero.
+func shift(v uint64, delta int64) uint64 {
+	if delta < 0 && uint64(-delta) > v {
+		return 0
+	}
+	return uint64(int64(v) + delta)
+}
+
+func (n *Native) diskNow(now time.Time) (Disk, bool) {
+	free := statfsFree()
+	delta := int64(free) - int64(n.diskStatfs)
+	if !n.diskAt.IsZero() && now.Sub(n.diskAt) < DiskRefresh && free != 0 && n.diskStatfs != 0 &&
+		delta < 2<<30 && delta > -(2<<30) {
+		d := n.disk
+		d.Available, d.RawFree = shift(d.Available, delta), shift(d.RawFree, delta)
+		return d, true
+	}
+	var dt, di, dr C.uint64_t
+	if C.ht_disk(&dt, &di, &dr) != 0 {
+		return Disk{}, false
+	}
+	n.disk = Disk{Total: uint64(dt), Available: uint64(di), RawFree: uint64(dr)}
+	n.diskAt, n.diskStatfs = now, free
+	return n.disk, true
 }
 
 // NewNative returns the macOS collector.
@@ -71,9 +116,8 @@ func (n *Native) System() (Snapshot, error) {
 		s.Unavailable = append(s.Unavailable, "pressure")
 	}
 
-	var dt, di, dr C.uint64_t
-	if C.ht_disk(&dt, &di, &dr) == 0 {
-		s.Disk = Disk{Total: uint64(dt), Available: uint64(di), RawFree: uint64(dr)}
+	if d, ok := n.diskNow(s.Time); ok {
+		s.Disk = d
 	} else {
 		s.Unavailable = append(s.Unavailable, "disk")
 	}

@@ -67,8 +67,19 @@ func (a *AppTracker) Add(pt collector.ProcessTable, groups []collector.AppGroup)
 		cut++
 	}
 	a.tables = a.tables[cut:]
+	// Per-process detail is only needed for short rates (30 s); older
+	// tables keep just per-app totals for hourly growth. This keeps memory
+	// flat instead of holding ~400 copies of the whole process list.
+	for i := range a.tables {
+		if pt.Time.Sub(a.tables[i].t) > DetailWindow {
+			a.tables[i].procs = nil
+		}
+	}
 	a.groups = groups
 }
+
+// DetailWindow is how long per-process samples are kept.
+const DetailWindow = 2 * time.Minute
 
 // Groups is the latest grouping.
 func (a *AppTracker) Groups() []collector.AppGroup { return a.groups }
@@ -83,10 +94,16 @@ func (a *AppTracker) Rates(pids []int, over time.Duration) (cpu, disk float64, w
 	newest := a.tables[len(a.tables)-1]
 	base := a.tables[0]
 	for i := len(a.tables) - 2; i >= 0; i-- {
+		if a.tables[i].procs == nil {
+			break // older tables have no per-process detail
+		}
 		base = a.tables[i]
 		if newest.t.Sub(base.t) >= over {
 			break
 		}
+	}
+	if base.procs == nil {
+		return 0, 0, 0
 	}
 	window = newest.t.Sub(base.t)
 	if window <= 0 {

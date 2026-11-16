@@ -92,6 +92,8 @@ export const api = {
   notifyStatus: () => call<NotifyStatus>("NotificationStatus"),
   requestNotifications: () => call<NotifyStatus>("RequestNotifications"),
   openNotificationSettings: () => call<void>("OpenNotificationSettings"),
+  openLoginItemsSettings: () => call<void>("OpenLoginItemsSettings"),
+  quitHeadroom: () => call<void>("QuitHeadroom"),
   appIcon: (bundlePath: string) => call<string>("AppIcon", bundlePath),
   resizeSafety: (h: number) => call<void>("ResizeSafety", h),
 };

@@ -596,9 +596,10 @@ function renderSettings() {
   if (!settings) return;
   const focusedId = (document.activeElement as HTMLElement | null)?.id;
   clear(setForm);
-  setForm.append(
+  add(setForm,
     h("h2", null, "General"),
     toggle("startAtLogin", "Start at login", "Headroom opens quietly in the menu bar when you log in."),
+    loginNote(),
     choice("iconStyle", "Menu bar icon", "Fill shows how full memory is. Simple only changes when things get tight.", [["fill", "Fill"], ["simple", "Simple"]]),
     h("h2", null, "Alerts"),
     choice("sensitivity", "Alert sensitivity", "Early warns sooner. Relaxed waits until a slowdown is closer.",
@@ -614,9 +615,27 @@ function renderSettings() {
       h("div", { class: "set-text" }, h("span", { class: "lbl" }, "Export history"), h("p", { class: "caption" }, "Saves your history as a CSV file you choose where to keep.")),
       h("button", { class: "btn secondary", type: "button", on: { click: exportHistory } }, "Export history…")),
     deleteRow(),
+    h("h2", null, "Headroom"),
+    h("div", { class: "set-row" },
+      h("div", { class: "set-text" }, h("span", { class: "lbl" }, "Quit Headroom"),
+        h("p", { class: "caption" }, "Stops watching until you open Headroom again. You can also right-click the menu bar icon.")),
+      h("button", { class: "btn secondary", type: "button", on: { click: () => api.quitHeadroom().catch(fail) } }, "Quit Headroom")),
   );
   if (focusedId) document.getElementById(focusedId)?.focus();
   loadNotifyStatus();
+}
+
+function loginNote(): HTMLElement | null {
+  if (!settings || machine?.demo) return null;
+  if (settings.loginNeedsApproval) {
+    return h("div", { class: "note-box" },
+      h("p", null, "macOS is waiting for you to allow Headroom in Login Items."),
+      h("button", { class: "btn secondary small", type: "button", on: { click: () => api.openLoginItemsSettings().catch(fail) } }, "Open System Settings"));
+  }
+  if (settings.loginAvailable === false) {
+    return h("div", { class: "note-box" }, h("p", null, "Start at login works when Headroom runs from the Applications folder."));
+  }
+  return null;
 }
 
 let deleting = false;
@@ -695,7 +714,9 @@ const onShow: Partial<Record<SectionId, () => void>> = {
 };
 
 async function start() {
-  go("overview");
+  // The window is created with the section to open in its URL hash.
+  const first = location.hash.slice(1) as SectionId;
+  go(first in onShow ? first : "overview");
   try {
     machine = await api.machine();
     demoTag.hidden = !machine.demo;
@@ -705,6 +726,7 @@ async function start() {
   }
   try {
     settings = await api.settings();
+    if (current === "settings") renderSettings(); // opened straight on Settings
   } catch (e) {
     fail(e);
   }

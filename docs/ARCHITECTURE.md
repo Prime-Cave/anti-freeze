@@ -16,7 +16,7 @@ Checked by reading the v3.1.0 source, not assumed:
 
 * **Menu bar icon state.** Wails sets an icon once and cannot switch a status item between a *template* image (monochrome, follows the menu bar) and a *coloured* image at runtime. It also has no tooltip or accessibility label on macOS (`setTooltip` is a no-op).
   `internal/tray` renders the icon in pure Go and a ~50-line Objective-C bridge finds the status bar button through public AppKit API (`NSApp.windows` → `NSStatusBarWindow` → `NSButton`). It then sets the image, the template flag, the light/dark variant and the accessibility label.
-* **Production asset serving.** Wails v3 serves the UI through a `WKURLSchemeHandler` on the `wails://` scheme. No TCP listener exists unless the app is built with the `server` or `mcp` build tags, which Headroom never uses. `make check` and CI verify no socket is open (see `docs/PRIVACY.md`).
+* **Production asset serving.** Wails v3 serves the UI through a `WKURLSchemeHandler` on the `wails://` scheme. No TCP listener exists unless the app is built with the `server` or `mcp` build tags, which Headroom never uses. The `internal/policy` tests (run by `make check` and CI) fail if a networking package is imported. That no socket is open at runtime was checked by hand with `lsof` during the build; `docs/PRIVACY.md` shows how to check it yourself.
 
 ## Build
 

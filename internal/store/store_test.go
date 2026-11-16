@@ -72,7 +72,7 @@ func TestMigrationsAreVersionedAndIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer s2.Close()
+	defer func() { _ = s2.Close() }()
 	if count(t, s2, "samples") != 1 {
 		t.Fatal("data lost on reopen")
 	}

@@ -40,6 +40,8 @@ type UI interface {
 	ResizeSafety(height int)
 	// SaveFileDialog asks where to save a file; "" if cancelled.
 	SaveFileDialog(defaultName string) (string, error)
+	// Quit quits Headroom itself.
+	Quit()
 }
 
 // Config wires the service.
@@ -52,6 +54,9 @@ type Config struct {
 	// System performs actions (AppKit in the app). Demo mode never calls it
 	// for quits or trash.
 	System actions.System
+	// LoginItem registers Headroom to start at login (SMAppService); nil in
+	// demo mode and selftests, so they never change the Mac's login items.
+	LoginItem LoginItem
 	// AppIcon renders an app bundle's icon as PNG.
 	AppIcon func(bundlePath string) ([]byte, bool)
 	// Selftest, if set, receives rendered page text (headroom --selftest).
@@ -132,14 +137,16 @@ func (s *Service) Run(ctx context.Context, ui UI) {
 	s.sampleProcesses()
 	s.sampleSystem()
 	lastSys, lastProc, lastMaint := time.Now(), time.Now(), time.Time{}
-	tick := time.NewTicker(500 * time.Millisecond)
-	defer tick.Stop()
+	// Sleep until the next sample is due rather than ticking: an idle
+	// Headroom wakes about once every 5 s. Opening a panel calls Wake.
+	timer := time.NewTimer(SlowInterval)
+	defer timer.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-s.wake:
-		case <-tick.C:
+		case <-timer.C:
 		}
 		now := time.Now()
 		interval := SlowInterval
@@ -158,6 +165,9 @@ func (s *Service) Run(ctx context.Context, ui UI) {
 			s.maintain(now)
 			lastMaint = now
 		}
+		next := min(time.Until(lastSys.Add(interval)), time.Until(lastProc.Add(ProcessInterval)),
+			time.Until(lastMaint.Add(MaintInterval)))
+		timer.Reset(max(next, 50*time.Millisecond))
 	}
 }
 
@@ -219,7 +229,10 @@ func (s *Service) sampleSystem() {
 	s.mu.Unlock()
 	if s.ui != nil {
 		s.ui.SetTrayIcon(st.State, fill, simple)
-		s.ui.Emit("status", st)
+		// Only open panels listen; they fetch the status themselves on open.
+		if s.ui.PanelsVisible() {
+			s.ui.Emit("status", st)
+		}
 	}
 	for _, h := range s.hooks {
 		h(st)
@@ -307,14 +320,27 @@ func (s *Service) History() ([]store.Action, error) { return s.cfg.Store.Actions
 // Settings returns the current settings.
 func (s *Service) Settings() Settings {
 	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.settings
+	cur := s.settings
+	s.mu.Unlock()
+	if li := s.cfg.LoginItem; li != nil {
+		on, approval, ok := li.Status()
+		cur.LoginAvailable, cur.LoginNeedsApproval = ok, approval
+		if ok {
+			cur.StartAtLogin = on || approval
+		}
+	}
+	return cur
 }
 
 // SetSetting validates and stores one setting, then applies it.
 func (s *Service) SetSetting(key, value string) (Settings, error) {
 	if !validSetting(key, value) {
 		return s.Settings(), errInvalid("That setting can't be changed to that value.")
+	}
+	if key == "startAtLogin" && s.cfg.LoginItem != nil {
+		if err := s.cfg.LoginItem.Set(value == "true"); err != nil {
+			return s.Settings(), errInvalid("macOS didn't accept the change: " + err.Error() + " You can also change it in System Settings › General › Login Items.")
+		}
 	}
 	if err := s.cfg.Store.SetSetting(key, value); err != nil {
 		return s.Settings(), err

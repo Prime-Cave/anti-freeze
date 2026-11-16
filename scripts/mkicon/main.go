@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 	set := filepath.Join(dir, "icons.iconset")
 	if err := os.Mkdir(set, 0o700); err != nil {
 		log.Fatal(err)
@@ -38,7 +38,7 @@ func main() {
 		write(*pngOut, render(512))
 	}
 	// Fixed arguments only; no shell.
-	cmd := exec.Command("/usr/bin/iconutil", "-c", "icns", "-o", *out, set)
+	cmd := exec.Command("/usr/bin/iconutil", "-c", "icns", "-o", *out, set) // #nosec G204 -- fixed binary, paths from the Makefile
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
@@ -46,11 +46,11 @@ func main() {
 }
 
 func write(path string, img image.Image) {
-	f, err := os.Create(path)
+	f, err := os.Create(path) // #nosec G304 -- build script writing to the path the Makefile gives
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	if err := png.Encode(f, img); err != nil {
 		log.Fatal(err)
 	}

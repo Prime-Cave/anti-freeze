@@ -12,9 +12,16 @@ import (
 
 // wailsUI implements app.UI on top of Wails windows and the tray.
 type wailsUI struct {
-	app       *application.App
-	tray      *application.SystemTray
-	dropdown  *application.WebviewWindow
+	app      *application.App
+	tray     *application.SystemTray
+	dropdown *application.WebviewWindow
+
+	// Created on demand and destroyed on close (which also ends their web
+	// content processes), so a closed dashboard costs nothing.
+	newDashboard func(section string) *application.WebviewWindow
+	newSafety    func() *application.WebviewWindow
+
+	wmu       sync.Mutex
 	dashboard *application.WebviewWindow
 	safety    *application.WebviewWindow
 
@@ -28,7 +35,34 @@ type wailsUI struct {
 func (u *wailsUI) Emit(event string, data any) { u.app.Event.Emit(event, data) }
 
 func (u *wailsUI) PanelsVisible() bool {
-	return u.dropdown.IsVisible() || u.dashboard.IsVisible() || u.safety.IsVisible()
+	if u.dropdown.IsVisible() {
+		return true
+	}
+	u.wmu.Lock()
+	defer u.wmu.Unlock()
+	return u.dashboard != nil || u.safety != nil
+}
+
+// window returns the dashboard or safety window if it is open.
+func (u *wailsUI) window(name string) *application.WebviewWindow {
+	u.wmu.Lock()
+	defer u.wmu.Unlock()
+	if name == "safety" {
+		return u.safety
+	}
+	return u.dashboard
+}
+
+// forget drops a window that is closing, so it is created afresh next time.
+func (u *wailsUI) forget(w *application.WebviewWindow) {
+	u.wmu.Lock()
+	defer u.wmu.Unlock()
+	if u.dashboard == w {
+		u.dashboard = nil
+	}
+	if u.safety == w {
+		u.safety = nil
+	}
 }
 
 var stateLabels = map[analyzer.State]string{
@@ -61,13 +95,24 @@ func (u *wailsUI) SetTrayIcon(state analyzer.State, memFill float64, simple bool
 }
 
 func (u *wailsUI) ShowDashboard(section string) {
-	u.dashboard.Show()
-	u.dashboard.Focus()
+	u.wmu.Lock()
+	w, existed := u.dashboard, u.dashboard != nil
+	if !existed {
+		w = u.newDashboard(section)
+		u.dashboard = w
+	}
+	u.wmu.Unlock()
+	w.Show()
+	w.Focus()
 	application.InvokeAsync(u.app.Show) // bring the (accessory) app forward; AppKit needs the main thread
-	u.dashboard.EmitEvent("navigate", section)
+	if existed {
+		w.EmitEvent("navigate", section)
+	}
 }
 
 func (u *wailsUI) HideDropdown() { u.dropdown.Hide() }
+
+func (u *wailsUI) Quit() { u.app.Quit() }
 
 func (u *wailsUI) ResizeDropdown(height int) {
 	w, h := u.dropdown.Size()
@@ -81,29 +126,49 @@ func (u *wailsUI) ResizeDropdown(height int) {
 }
 
 // ShowSafety opens the safety check window centred on screen, in front.
+// A new window asks for the pending app itself when its page loads.
 func (u *wailsUI) ShowSafety(appKey string) {
-	u.safety.Center()
-	u.safety.Show()
+	u.wmu.Lock()
+	w, existed := u.safety, u.safety != nil
+	if !existed {
+		w = u.newSafety()
+		u.safety = w
+	}
+	u.wmu.Unlock()
+	w.Center()
+	w.Show()
 	application.InvokeAsync(u.app.Show)
-	u.safety.Focus()
-	u.safety.EmitEvent("safety-open", appKey)
+	w.Focus()
+	if existed {
+		w.EmitEvent("safety-open", appKey)
+	}
 }
 
-func (u *wailsUI) HideSafety() { u.safety.Hide() }
+func (u *wailsUI) HideSafety() {
+	if w := u.window("safety"); w != nil {
+		w.Close()
+	}
+}
 
 func (u *wailsUI) ResizeSafety(height int) {
-	if _, h := u.safety.Size(); h != height {
-		u.safety.SetSize(safetyWidth, height)
-		u.safety.Center()
+	w := u.window("safety")
+	if w == nil {
+		return
+	}
+	if _, h := w.Size(); h != height {
+		w.SetSize(safetyWidth, height)
+		w.Center()
 	}
 }
 
 // SaveFileDialog shows the macOS save panel, attached to the dashboard.
 func (u *wailsUI) SaveFileDialog(defaultName string) (string, error) {
-	return u.app.Dialog.SaveFile().
+	d := u.app.Dialog.SaveFile().
 		SetFilename(defaultName).
 		AddFilter("CSV", "*.csv").
-		CanCreateDirectories(true).
-		AttachToWindow(u.dashboard).
-		PromptForSingleSelection()
+		CanCreateDirectories(true)
+	if w := u.window("dashboard"); w != nil {
+		d = d.AttachToWindow(w)
+	}
+	return d.PromptForSingleSelection()
 }

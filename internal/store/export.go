@@ -23,6 +23,7 @@ func (s *Store) ExportCSV(w io.Writer) (int, error) {
 	}
 	n := 0
 	for _, t := range []struct{ name, table string }{{"10m", "rollup_10m"}, {"1m", "rollup_1m"}, {"raw", "samples"}} {
+		// #nosec G202 -- t.table comes from the fixed list in this loop.
 		rows, err := s.db.Query(`SELECT ts, mem_total, mem_used, mem_compressed, swap_used, disk_free, pressure, cpu, thermal, headroom, state, COALESCE(top_app, '') FROM ` + t.table + ` ORDER BY ts`)
 		if err != nil {
 			return n, err
@@ -33,18 +34,20 @@ func (s *Store) ExportCSV(w io.Writer) (int, error) {
 			var cpu float64
 			var top string
 			if err := rows.Scan(&ts, &mt, &mu, &mc, &su, &df, &pr, &cpu, &th, &hr, &st, &top); err != nil {
-				rows.Close()
+				_ = rows.Close()
 				return n, err
 			}
 			rec := []string{t.name, time.UnixMilli(ts).UTC().Format(time.RFC3339), i(mt), i(mu), i(mc), i(su), i(df),
 				strconv.Itoa(pr), strconv.FormatFloat(cpu, 'f', 1, 64), strconv.Itoa(th), i(hr), stateName(st), top}
 			if err := cw.Write(rec); err != nil {
-				rows.Close()
+				_ = rows.Close()
 				return n, err
 			}
 			n++
 		}
-		rows.Close()
+		if err := rows.Close(); err != nil {
+			return n, err
+		}
 	}
 	cw.Flush()
 	return n, cw.Error()

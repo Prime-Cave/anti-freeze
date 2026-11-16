@@ -90,6 +90,10 @@ var places = []place{
 	{"npm cache", ".npm/_cacache", "developer", true},
 	{"Gradle caches", ".gradle/caches", "developer", true},
 	{"Cargo download cache", ".cargo/registry/cache", "developer", true},
+	// Measured and shown only: backups are managed in Finder, never trashed
+	// piece by piece. macOS usually blocks this folder without Full Disk
+	// Access, and Headroom then shows the NeedsAccess note instead of asking.
+	{"iPhone and iPad backups", "Library/Application Support/MobileSync/Backup", "backups", false},
 }
 
 // diskState holds the last scan. Embedded in Manager.
@@ -132,6 +136,9 @@ func (m *Manager) DiskReport(ctx context.Context, scan bool) DiskReport {
 		if err != nil || !fi.IsDir() {
 			if p.kind == "developer" {
 				continue // only show developer leftovers that exist
+			}
+			if p.kind == "backups" && errors.Is(err, fs.ErrNotExist) {
+				continue // no backups on this Mac
 			}
 			if errors.Is(err, fs.ErrNotExist) {
 				r.Items = append(r.Items, DiskItem{Name: p.name, Path: path, Known: true, Kind: p.kind})

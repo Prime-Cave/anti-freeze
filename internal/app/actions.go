@@ -30,7 +30,10 @@ type NotifyStatus struct {
 	Available  bool `json:"available"`
 }
 
-const notificationSettingsURL = "x-apple.systempreferences:com.apple.preference.notifications"
+const (
+	notificationSettingsURL = "x-apple.systempreferences:com.apple.preference.notifications"
+	loginItemsSettingsURL   = "x-apple.systempreferences:com.apple.LoginItems-Settings.extension"
+)
 
 func (s *Service) setupActions() {
 	s.act = &actions.Manager{
@@ -313,6 +316,41 @@ func (s *Service) RequestNotifications() NotifyStatus {
 	return s.NotificationStatus()
 }
 
+// LoginItem is Headroom's login item (SMAppService.mainApp in the app).
+type LoginItem interface {
+	// Status reports whether the item is on, waiting for approval in
+	// System Settings, and whether login items are available at all
+	// (only from an .app bundle).
+	Status() (on, needsApproval, available bool)
+	Set(on bool) error
+	// Installed reports whether Headroom runs from an Applications folder.
+	// Only an installed copy turns itself on at first launch.
+	Installed() bool
+}
+
+// SetupLoginItemOnce turns start at login on the first time Headroom runs
+// from an Applications folder (the default the brief asks for). A copy
+// opened from the DMG or a build folder never registers itself. After that, the user's
+// choice in Settings or in System Settings is left alone.
+func (s *Service) SetupLoginItemOnce() {
+	li := s.cfg.LoginItem
+	if li == nil || s.cfg.Demo || !li.Installed() {
+		return
+	}
+	if _, _, ok := li.Status(); !ok {
+		return
+	}
+	if s.cfg.Store.Settings()["loginSetUp"] == "true" {
+		return
+	}
+	_ = s.cfg.Store.SetSetting("loginSetUp", "true")
+	if s.Settings().StartAtLogin {
+		if err := li.Set(true); err != nil {
+			s.log.Warn("login item", "err", err)
+		}
+	}
+}
+
 // AskNotificationsOnce shows the macOS permission prompt the first time
 // Headroom runs (never again: after that, Settings links to System Settings).
 func (s *Service) AskNotificationsOnce() {
@@ -324,6 +362,20 @@ func (s *Service) AskNotificationsOnce() {
 	}
 	_ = s.cfg.Store.SetSetting("notifyAsked", "true")
 	s.RequestNotifications()
+}
+
+// QuitHeadroom quits Headroom itself (Settings › Quit Headroom).
+func (s *Service) QuitHeadroom() {
+	if s.ui != nil {
+		s.ui.Quit()
+	}
+}
+
+// OpenLoginItemsSettings opens System Settings › General › Login Items.
+func (s *Service) OpenLoginItemsSettings() {
+	if s.cfg.System != nil {
+		s.cfg.System.Open(loginItemsSettingsURL)
+	}
 }
 
 // OpenNotificationSettings opens System Settings › Notifications.

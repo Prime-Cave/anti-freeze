@@ -64,7 +64,7 @@ func (s *Store) open() error {
 	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {
 		return err
 	}
-	if err := os.Chmod(filepath.Dir(s.path), 0o700); err != nil {
+	if err := os.Chmod(filepath.Dir(s.path), 0o700); err != nil { // #nosec G302 -- a folder needs the execute bit; 0700 is owner-only
 		return err
 	}
 	// Create the file ourselves so it is 0600 from the first byte.
@@ -230,7 +230,7 @@ func (s *Store) AddSamples(xs []Sample) error {
 		_ = tx.Rollback()
 		return err
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 	for _, x := range xs {
 		if _, err := stmt.Exec(x.Time.UnixMilli(), int64(x.MemTotal), int64(x.MemUsed), int64(x.MemCompressed), int64(x.SwapUsed),
 			int64(x.DiskFree), x.Pressure, x.CPU, x.Thermal, int64(x.Headroom), int(x.State), x.TopApp); err != nil {
@@ -318,10 +318,11 @@ func (s *Store) capSizeLocked() error {
 		trimmed := false
 		for _, t := range []string{"samples", "rollup_1m", "rollup_10m"} {
 			var n int64
-			_ = s.db.QueryRow(`SELECT COUNT(*) FROM ` + t).Scan(&n)
+			_ = s.db.QueryRow(`SELECT COUNT(*) FROM ` + t).Scan(&n) // #nosec G202 -- fixed table names
 			if n == 0 {
 				continue
 			}
+			// #nosec G202 -- t is one of the fixed table names in this loop.
 			if _, err := s.db.Exec(`DELETE FROM `+t+` WHERE ts IN (SELECT ts FROM `+t+` ORDER BY ts LIMIT ?)`, max(n/5, 1)); err != nil {
 				return err
 			}
@@ -384,6 +385,7 @@ func (s *Store) Timeline(from, to time.Time, maxPoints int) ([]Point, error) {
 		table = "rollup_1m"
 	}
 	bucket := max(span.Milliseconds()/int64(max(maxPoints, 1)), 1)
+	// #nosec G201 -- table is one of two fixed names chosen above; bucket is an integer.
 	q := fmt.Sprintf(`SELECT b, MAX(mem_total), MAX(mem_used), MAX(swap_used), MIN(disk_free),
 	   MIN(headroom), MAX(state), AVG(cpu),
 	   (SELECT top_app FROM %[1]s s2 WHERE s2.ts >= b AND s2.ts < b + %[2]d ORDER BY mem_used DESC LIMIT 1)
@@ -392,7 +394,7 @@ func (s *Store) Timeline(from, to time.Time, maxPoints int) ([]Point, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	var out []Point
 	for rows.Next() {
 		var ts, mt, mu, su, df, hr int64
@@ -465,7 +467,7 @@ func (s *Store) Episodes(from, to time.Time) ([]analyzer.Episode, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	var out []analyzer.Episode
 	for rows.Next() {
 		var e analyzer.Episode
@@ -524,7 +526,7 @@ func (s *Store) Actions(limit int) ([]Action, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	var out []Action
 	for rows.Next() {
 		var a Action
@@ -569,7 +571,7 @@ func (s *Store) Settings() map[string]string {
 	if err != nil {
 		return out
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	for rows.Next() {
 		var k, v string
 		if rows.Scan(&k, &v) == nil {
@@ -588,7 +590,11 @@ func (s *Store) getKV(table, k string) (string, bool) {
 	if s.db == nil {
 		return "", false
 	}
+	if table != "settings" && table != "meta" {
+		return "", false
+	}
 	var v string
+	// #nosec G202 -- table is checked against a fixed list just above.
 	if err := s.db.QueryRow(`SELECT value FROM `+table+` WHERE key = ?`, k).Scan(&v); err != nil {
 		return "", false
 	}
@@ -601,6 +607,10 @@ func (s *Store) setKV(table, k, v string) error {
 	if s.db == nil {
 		return errClosed
 	}
+	if table != "settings" && table != "meta" {
+		return errors.New("store: unknown table")
+	}
+	// #nosec G202 -- table is checked against a fixed list just above.
 	_, err := s.db.Exec(`INSERT INTO `+table+` (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`, k, v)
 	return err
 }

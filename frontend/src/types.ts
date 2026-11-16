@@ -113,6 +113,8 @@ export interface Settings {
   retentionDays: number;
   showForceQuit: boolean;
   notifications: boolean;
+  loginAvailable?: boolean;
+  loginNeedsApproval?: boolean;
 }
 
 export interface Point {
@@ -193,7 +195,7 @@ export interface DiskItem {
   size: number;
   known: boolean;
   note?: string;
-  kind: "downloads" | "caches" | "trash" | "developer";
+  kind: "downloads" | "caches" | "trash" | "developer" | "backups";
   canReveal: boolean;
   canReview: boolean;
 }

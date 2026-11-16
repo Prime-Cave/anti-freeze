@@ -18,7 +18,7 @@ export CGO_LDFLAGS := -mmacosx-version-min=$(MINOS)
 # e.g. SIGN_IDENTITY="Developer ID Application: …" make app. Never commit it.
 SIGN_IDENTITY ?= -
 
-.PHONY: all frontend build run app dmg test race integration vet lint check stress clean sample icon
+.PHONY: all frontend build run app dmg test race integration vet lint security check stress clean sample icon
 
 all: app
 
@@ -47,7 +47,7 @@ app: $(OUT)/headroom-arm64 $(OUT)/headroom-amd64
 	lipo -create -output $(APP)/Contents/MacOS/$(APP_NAME) $(OUT)/headroom-arm64 $(OUT)/headroom-amd64
 	sed "s/__VERSION__/$(PLIST_VER)/g" build/darwin/Info.plist > $(APP)/Contents/Info.plist
 	go run ./scripts/mkicon -out $(APP)/Contents/Resources/icons.icns
-	codesign --force --options runtime --timestamp=none \
+	codesign --force --options runtime $(if $(filter -,$(SIGN_IDENTITY)),--timestamp=none,--timestamp) \
 		--entitlements build/darwin/Headroom.entitlements -s "$(SIGN_IDENTITY)" $(APP)
 	codesign --verify --strict $(APP)
 	@lipo -info $(APP)/Contents/MacOS/$(APP_NAME)
@@ -77,8 +77,14 @@ vet:
 	go vet ./...
 
 lint:
-	staticcheck ./...
 	golangci-lint run ./...
+
+# Same scanners as CI: govulncheck, gosec (G115 excluded, see CI), gitleaks.
+security:
+	govulncheck ./...
+	gosec -quiet -exclude=G115 ./...
+	gitleaks dir --redact .
+	gitleaks git --redact .
 
 check: vet race lint
 	cd frontend && npm run typecheck && npm run contrast

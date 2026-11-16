@@ -58,6 +58,8 @@ func (a *API) DeleteHistory(confirmation string) error { return a.s.DeleteHistor
 func (a *API) NotificationStatus() NotifyStatus   { return a.s.NotificationStatus() }
 func (a *API) RequestNotifications() NotifyStatus { return a.s.RequestNotifications() }
 func (a *API) OpenNotificationSettings()          { a.s.OpenNotificationSettings() }
+func (a *API) OpenLoginItemsSettings()            { a.s.OpenLoginItemsSettings() }
+func (a *API) QuitHeadroom()                      { a.s.QuitHeadroom() }
 
 // SelftestReport receives the rendered page text during `--selftest` runs and
 // prints it. It does nothing in normal use.

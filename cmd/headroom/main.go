@@ -3,6 +3,8 @@
 //	headroom             run the menu bar app
 //	headroom sample      print one JSON snapshot (compare with Activity Monitor)
 //	headroom --selftest  start, report the status item to stdout, quit
+//	headroom --version   print the version
+//	headroom --login-item status|off   show or turn off start at login (bundle only)
 //
 // HEADROOM_DEMO=ok|tight|critical|recover replays a synthetic slowdown
 // instead of reading this Mac, with a throwaway database. Actions in demo
@@ -37,8 +39,15 @@ const (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
+		fmt.Println("Headroom", version)
+		return
+	}
 	if len(os.Args) > 1 && os.Args[1] == "sample" {
 		os.Exit(runSample())
+	}
+	if len(os.Args) > 2 && os.Args[1] == "--login-item" {
+		os.Exit(runLoginItem(os.Args[2]))
 	}
 	selftest := len(os.Args) > 1 && os.Args[1] == "--selftest"
 	demo := os.Getenv("HEADROOM_DEMO")
@@ -54,14 +63,14 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer os.RemoveAll(dir)
+		defer func() { _ = os.RemoveAll(dir) }()
 		dbPath = filepath.Join(dir, "headroom.db")
 	}
 	st, err := store.Open(dbPath)
 	if err != nil {
 		log.Fatalf("Headroom can't open its history at %s: %v", dbPath, err)
 	}
-	defer st.Close()
+	defer func() { _ = st.Close() }()
 
 	// Collector and machine profile.
 	var col collector.Collector
@@ -82,6 +91,8 @@ func main() {
 		System: macos.System{}, AppIcon: macos.AppIconPNG}
 	if selftest {
 		cfg.Selftest = func(page, text string) { fmt.Printf("--- %s ---\n%s\n", page, text) }
+	} else if demo == "" && macos.InBundle() {
+		cfg.LoginItem = loginItem{} // never touched in demo mode or selftests
 	}
 	svc := app.New(cfg)
 
@@ -114,32 +125,40 @@ func main() {
 	})
 	tr.AttachWindow(dropdown).WindowOffset(6)
 
-	dashboard := wapp.Window.NewWithOptions(application.WebviewWindowOptions{
-		Name: "dashboard", Title: "Headroom", URL: "/dashboard.html",
-		Width: 1120, Height: 760, MinWidth: 900, MinHeight: 600, Hidden: true,
-		BackgroundColour:           application.NewRGB(0xF3, 0xF5, 0xF8),
-		DefaultContextMenuDisabled: true,
-	})
-	dashboard.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
-		dashboard.Hide()
-		e.Cancel()
-	})
-
+	// The dashboard and the safety check are created when first needed and
+	// destroyed when closed, so no hidden web views run in the background.
+	ui := &wailsUI{app: wapp, tray: tr, dropdown: dropdown}
+	ui.newDashboard = func(section string) *application.WebviewWindow {
+		w := wapp.Window.NewWithOptions(application.WebviewWindowOptions{
+			Name: "dashboard", Title: "Headroom", URL: "/dashboard.html#" + section,
+			Width: 1120, Height: 760, MinWidth: 900, MinHeight: 600,
+			BackgroundColour:           application.NewRGB(0xF3, 0xF5, 0xF8),
+			DefaultContextMenuDisabled: true,
+		})
+		w.RegisterHook(events.Common.WindowClosing, func(*application.WindowEvent) { ui.forget(w) })
+		return w
+	}
 	// The safety check (section 7.5): its own small window so it can appear
 	// from a notification without the dropdown. 420 px wide, radius 14.
-	safety := wapp.Window.NewWithOptions(application.WebviewWindowOptions{
-		Name: "safety", Title: "Quit app", URL: "/safety.html", Width: safetyWidth, Height: 320,
-		Frameless: true, AlwaysOnTop: true, Hidden: true, DisableResize: true,
-		BackgroundType:             application.BackgroundTypeTransparent,
-		Mac:                        application.MacWindow{Backdrop: application.MacBackdropTransparent},
-		DefaultContextMenuDisabled: true,
-	})
-	safety.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
-		svc.CloseSafetyCheck()
-		e.Cancel()
-	})
+	ui.newSafety = func() *application.WebviewWindow {
+		w := wapp.Window.NewWithOptions(application.WebviewWindowOptions{
+			Name: "safety", Title: "Quit app", URL: "/safety.html", Width: safetyWidth, Height: 320,
+			Frameless: true, AlwaysOnTop: true, DisableResize: true, InitialPosition: application.WindowCentered,
+			BackgroundType:             application.BackgroundTypeTransparent,
+			Mac:                        application.MacWindow{Backdrop: application.MacBackdropTransparent},
+			DefaultContextMenuDisabled: true,
+		})
+		w.RegisterHook(events.Common.WindowClosing, func(*application.WindowEvent) { ui.forget(w) })
+		return w
+	}
+	// Right-click menu on the menu bar icon (left click opens the dropdown).
+	menu := wapp.NewMenu()
+	menu.Add("Open dashboard").OnClick(func(*application.Context) { svc.OpenDashboard("overview") })
+	menu.Add("Settings…").OnClick(func(*application.Context) { svc.OpenDashboard("settings") })
+	menu.AddSeparator()
+	menu.Add("Quit Headroom").OnClick(func(*application.Context) { wapp.Quit() })
+	tr.SetMenu(menu)
 
-	ui := &wailsUI{app: wapp, tray: tr, dropdown: dropdown, dashboard: dashboard, safety: safety}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -151,6 +170,7 @@ func main() {
 				go svc.AskNotificationsOnce()
 			}
 		}
+		go svc.SetupLoginItemOnce()
 		go svc.Run(ctx, ui)
 		if selftest {
 			go func() {
@@ -159,11 +179,13 @@ func main() {
 				fmt.Printf("notifications: %+v\n", svc.NotificationStatus())
 				// Render both pages and have them report their text back.
 				dropdown.Show()
-				dashboard.Show()
+				ui.ShowDashboard("overview")
 				time.Sleep(3 * time.Second)
 				js := "window.__headroomReport && window.__headroomReport()"
 				dropdown.ExecJS(js)
-				dashboard.ExecJS(js)
+				if w := ui.window("dashboard"); w != nil {
+					w.ExecJS(js)
+				}
 				// Open the safety check for the suggested app (demo data only:
 				// the selftest never confirms a quit).
 				for _, sg := range svc.Status().Suggestions {
@@ -172,9 +194,35 @@ func main() {
 							fmt.Println("safety:", err)
 						}
 						time.Sleep(2 * time.Second)
-						safety.ExecJS(js)
+						if w := ui.window("safety"); w != nil {
+							w.ExecJS(js)
+						}
+						time.Sleep(time.Second)
+						// Keep [App] open closes and destroys the window;
+						// opening it again makes a fresh one.
+						svc.CloseSafetyCheck()
+						time.Sleep(time.Second)
+						fmt.Println("lifecycle: safety closed:", ui.window("safety") == nil)
+						_ = svc.OpenSafetyCheck(sg.AppKey)
+						time.Sleep(2 * time.Second)
+						fmt.Println("lifecycle: safety reopened:", ui.window("safety") != nil)
+						svc.CloseSafetyCheck()
 						break
 					}
+				}
+				// Close the dashboard and dropdown: nothing may stay alive.
+				time.Sleep(time.Second)
+				if w := ui.window("dashboard"); w != nil {
+					w.Close()
+				}
+				dropdown.Hide()
+				time.Sleep(time.Second)
+				fmt.Println("lifecycle: dashboard closed:", ui.window("dashboard") == nil, "panels visible:", ui.PanelsVisible())
+				// Reopen straight on Settings (section from the URL hash).
+				svc.OpenDashboard("settings")
+				time.Sleep(3 * time.Second)
+				if w := ui.window("dashboard"); w != nil {
+					w.ExecJS(js)
 				}
 				time.Sleep(2 * time.Second)
 				wapp.Quit()
@@ -196,4 +244,32 @@ func loadProfile(st *store.Store, c collector.Collector) machine.Profile {
 	}
 	_ = st.SaveProfile(detected)
 	return detected
+}
+
+// runLoginItem reports or turns off the login item from the command line,
+// for troubleshooting. Turning it on is left to Settings.
+func runLoginItem(cmd string) int {
+	if !macos.InBundle() {
+		fmt.Println("Start at login only works when Headroom runs from its .app bundle.")
+		return 1
+	}
+	if cmd == "off" {
+		if err := (loginItem{}).Set(false); err != nil {
+			fmt.Println("Couldn't turn off start at login:", err)
+			return 1
+		}
+	} else if cmd != "status" {
+		fmt.Println("Use --login-item status or --login-item off.")
+		return 2
+	}
+	on, approval, _ := loginItem{}.Status()
+	switch {
+	case on:
+		fmt.Println("Start at login: on")
+	case approval:
+		fmt.Println("Start at login: waiting for approval in System Settings")
+	default:
+		fmt.Println("Start at login: off")
+	}
+	return 0
 }

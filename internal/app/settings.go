@@ -15,6 +15,10 @@ type Settings struct {
 	RetentionDays   int    `json:"retentionDays"`   // 10-minute rollups: 30 | 90
 	ShowForceQuit   bool   `json:"showForceQuit"`   // force quit is hidden by default
 	Notifications   bool   `json:"notifications"`
+
+	// Login item state from macOS, filled in by Service.Settings.
+	LoginAvailable     bool `json:"loginAvailable"`
+	LoginNeedsApproval bool `json:"loginNeedsApproval"`
 }
 
 // DefaultSettings are used until the user changes anything.

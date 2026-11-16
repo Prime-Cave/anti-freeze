@@ -199,7 +199,12 @@ async function start() {
   } catch (e) {
     showError(e);
   }
-  window.addEventListener("focus", () => api.panelOpened().catch(() => {}));
+  // Status events only flow while a panel is open, so fetch fresh status
+  // each time the dropdown opens, then let the loop speed up.
+  window.addEventListener("focus", () => {
+    api.status().then(render).catch(() => {});
+    api.panelOpened().catch(() => {});
+  });
 }
 
 start();

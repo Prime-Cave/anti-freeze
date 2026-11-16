@@ -49,11 +49,8 @@ func (d *Demo) Warmup() ([]Snapshot, []ProcessTable) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	end := d.sc.Snaps[d.startAt].Time
-	var snaps []Snapshot
+	snaps := append([]Snapshot(nil), d.sc.Snaps[:d.startAt]...)
 	var tables []ProcessTable
-	for _, s := range d.sc.Snaps[:d.startAt] {
-		snaps = append(snaps, s)
-	}
 	for _, t := range d.sc.Tables {
 		if t.Time.Before(end) {
 			tables = append(tables, t)

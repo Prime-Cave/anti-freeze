@@ -22,7 +22,7 @@ func write(path string, sc collector.Scenario) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := os.WriteFile(path, b, 0o644); err != nil {
+	if err := os.WriteFile(path, b, 0o600); err != nil {
 		log.Fatal(err)
 	}
 }

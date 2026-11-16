@@ -422,7 +422,7 @@ func TestPermissionDeniedNote(t *testing.T) {
 	if err := os.Chmod(dir, 0); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chmod(dir, 0o700)
+	defer func() { _ = os.Chmod(dir, 0o700) }()
 	rep := m.DiskReport(context.Background(), true)
 	for _, it := range rep.Items {
 		if it.Kind == "downloads" && (it.Known || it.Note != NeedsAccess || it.CanReview) {

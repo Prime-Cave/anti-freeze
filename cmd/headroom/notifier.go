@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/Prime-Cave/headroom/internal/macos"
 	"github.com/Prime-Cave/headroom/internal/notify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/services/notifications"
@@ -93,3 +94,22 @@ func (n *notifier) RequestAuthorization() bool {
 	ok, _ := n.ns.RequestNotificationAuthorization()
 	return ok
 }
+
+// loginItem adapts internal/macos to app.LoginItem.
+type loginItem struct{}
+
+func (loginItem) Status() (on, needsApproval, available bool) {
+	switch macos.LoginItemStatus() {
+	case macos.LoginOn:
+		return true, false, true
+	case macos.LoginNeedsApproval:
+		return false, true, true
+	case macos.LoginOff:
+		return false, false, true
+	}
+	return false, false, false
+}
+
+func (loginItem) Set(on bool) error { return macos.SetLoginItem(on) }
+
+func (loginItem) Installed() bool { return macos.InApplications() }
