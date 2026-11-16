@@ -4,7 +4,7 @@
 //	headroom sample      print one JSON snapshot (compare with Activity Monitor)
 //	headroom --selftest  start, report the status item to stdout, quit
 //	headroom --version   print the version
-//	headroom --login-item status|off   show or turn off start at login (bundle only)
+//	headroom --login-item status|on|off   show or change start at login (bundle only)
 //
 // HEADROOM_DEMO=ok|tight|critical|recover replays a synthetic slowdown
 // instead of reading this Mac, with a throwaway database. Actions in demo
@@ -246,20 +246,22 @@ func loadProfile(st *store.Store, c collector.Collector) machine.Profile {
 	return detected
 }
 
-// runLoginItem reports or turns off the login item from the command line,
-// for troubleshooting. Turning it on is left to Settings.
+// runLoginItem shows or changes the login item from the command line, for
+// troubleshooting (Settings › Start at login does the same).
 func runLoginItem(cmd string) int {
 	if !macos.InBundle() {
 		fmt.Println("Start at login only works when Headroom runs from its .app bundle.")
 		return 1
 	}
-	if cmd == "off" {
-		if err := (loginItem{}).Set(false); err != nil {
-			fmt.Println("Couldn't turn off start at login:", err)
+	switch cmd {
+	case "on", "off":
+		if err := (loginItem{}).Set(cmd == "on"); err != nil {
+			fmt.Println("Couldn't change start at login:", err)
 			return 1
 		}
-	} else if cmd != "status" {
-		fmt.Println("Use --login-item status or --login-item off.")
+	case "status":
+	default:
+		fmt.Println("Use --login-item status, on or off.")
 		return 2
 	}
 	on, approval, _ := loginItem{}.Status()

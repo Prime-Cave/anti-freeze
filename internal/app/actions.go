@@ -344,7 +344,12 @@ func (s *Service) SetupLoginItemOnce() {
 		return
 	}
 	_ = s.cfg.Store.SetSetting("loginSetUp", "true")
-	if s.Settings().StartAtLogin {
+	// The stored preference (default on), not Settings(), which reports the
+	// live login item state and so reads "off" before the first registration.
+	s.mu.Lock()
+	want := s.settings.StartAtLogin
+	s.mu.Unlock()
+	if want {
 		if err := li.Set(true); err != nil {
 			s.log.Warn("login item", "err", err)
 		}
