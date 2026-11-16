@@ -12,15 +12,14 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  MACOSX_DEPLOYMENT_TARGET: "13.0"
-  CGO_CFLAGS: -mmacosx-version-min=13.0
-  CGO_LDFLAGS: -mmacosx-version-min=13.0
-
 jobs:
   build-test:
     name: Build and test
     runs-on: macos-latest
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
+      CGO_CFLAGS: -mmacosx-version-min=13.0
+      CGO_LDFLAGS: -mmacosx-version-min=13.0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
