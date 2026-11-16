@@ -1,0 +1,45 @@
+/* Design tokens — implemented exactly from the handoff spec (docs/DESIGN_TOKENS.md). */
+:root {
+  /* neutrals, light */
+  --ink:#17202B; --ink-2:#4A5563; --ink-3:#5F6B7A;
+  --line:#DCE1E7; --line-soft:#E6EBF0; --surface:#FFFFFF; --canvas:#F3F5F8;
+  --btn-2:#F0F3F6; --btn-2-hover:#E6EBF0;
+  /* status */
+  --ok:#1F7A68; --tight:#9A5B00; --tight-wash:#FBF4E8; --critical:#B3261E; --critical-wash:#F6E3E1;
+  /* runway */
+  --mem-used:#2E3B4E; --mem-compressed:#7A8697; --mem-spare:#D5DCE4; --disk-free:#EEF1F5;
+  --swap-a:#9A5B00; --swap-b:#C98A2E;   /* hatched 135deg, 3px stripes */
+  /* type */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-figure: ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  /* shape */
+  --r-bar:4px; --r-row:6px; --r-btn:7px; --r-card:8px; --r-panel:12px; --r-dialog:14px;
+
+  /* derived (not in the spec, built only from spec values) */
+  --on-accent:#FFFFFF;
+  --focus: var(--ok);
+  --t-open: 160ms;
+  --t-runway: 240ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:#E6EAF0; --ink-2:#AEB7C3; --ink-3:#8C96A3; --line:#2C343E; --line-soft:#262D36;
+    --surface:#1D232B; --canvas:#15191F; --btn-2:#262D36; --btn-2-hover:#2F3742;
+    --ok:#4FC1A6; --tight:#E0A040; --tight-wash:#2A2316; --critical:#F2766B; --critical-wash:#2C1B1A;
+    --mem-used:#C3CCD8; --mem-compressed:#7F8A99; --mem-spare:#3A434F; --disk-free:#232A33;
+    --on-accent:#15191F;
+  }
+}
+
+/* Increase Contrast: secondary text becomes primary, lines get stronger. */
+@media (prefers-contrast: more) {
+  :root { --ink-2: var(--ink); --ink-3: var(--ink); --line: var(--ink-3); --line-soft: var(--line); }
+}
+
+/* Reduce Motion: no transitions at all. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-open: 0ms; --t-runway: 0ms; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

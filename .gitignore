@@ -1,0 +1,44 @@
+# Build output
+/build/out/
+/bin/
+/dist/
+*.app
+*.dmg
+*.test
+*.out
+coverage.*
+
+# Frontend
+node_modules/
+frontend/dist/*
+!frontend/dist/.gitkeep
+
+# Secrets and signing material — never commit these
+.env
+.env.*
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+*.keychain*
+*.pem
+*.key
+
+# Local data
+*.db
+*.db-*
+*.sqlite*
+*.csv
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+.claude/
+
+# Local config
+*.local
+local.mk

@@ -1,0 +1,5 @@
+html, body.dropdown { background: transparent; }
+.panel {
+  width: 360px; margin: 0; background: var(--surface);
+  border-radius: var(--r-panel); border: 1px solid var(--line); overflow: hidden;
+}
