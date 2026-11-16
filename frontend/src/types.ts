@@ -75,6 +75,16 @@ export interface Status {
   topApps: AppRow[] | null;
   suggestions: Suggestion[] | null;
   unavailable?: string[] | null;
+  thresholds?: Thresholds;
+}
+
+export interface Thresholds {
+  diskReserve: number;
+  diskFloor: number;
+  swapBudget: number;
+  swapGrowthTight: number;
+  forecastCritical: number;
+  learned?: boolean;
 }
 
 export interface Profile {

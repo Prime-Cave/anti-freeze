@@ -141,7 +141,8 @@ const handlers: Record<string, (...a: any[]) => unknown> = {
   ],
   PlanTrash: (paths: string[]) => ({ token: "t", names: paths.map((p) => p.split("/").pop()), total: 5.3 * GB, count: paths.length }),
   ConfirmTrash: () => ({ ok: true, message: "Moved 2 items to the Trash. 5.3 GB freed.", freed: 5.3 * GB }),
-  NotificationStatus: () => ({ authorized: params.get("notify") !== "0", determined: true }),
+  NotificationStatus: () => ({ authorized: params.get("notify") !== "0", determined: true, available: true }),
+  ExportHistory: () => "/Users/demo/Documents/Headroom history.csv",
   AppIcon: () => "",
   PendingSafetyCheck: () => appsTight[0].key,
 };

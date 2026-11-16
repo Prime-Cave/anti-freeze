@@ -49,6 +49,11 @@ function append(el: Element, children: (Child | Child[])[]) {
   }
 }
 
+/** Appends children, skipping null/false (for conditional parts). */
+export function add(el: Element, ...children: (Child | Child[])[]) {
+  append(el, children);
+}
+
 export function clear(el: Element) {
   while (el.firstChild) el.removeChild(el.firstChild);
 }

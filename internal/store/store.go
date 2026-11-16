@@ -212,6 +212,35 @@ func (s *Store) AddSample(x Sample) error {
 	return err
 }
 
+// AddSamples records many samples in one transaction.
+func (s *Store) AddSamples(xs []Sample) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.db == nil {
+		return errClosed
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	stmt, err := tx.Prepare(`INSERT OR REPLACE INTO samples
+	  (ts, mem_total, mem_used, mem_compressed, swap_used, disk_free, pressure, cpu, thermal, headroom, state, top_app)
+	  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	defer stmt.Close()
+	for _, x := range xs {
+		if _, err := stmt.Exec(x.Time.UnixMilli(), int64(x.MemTotal), int64(x.MemUsed), int64(x.MemCompressed), int64(x.SwapUsed),
+			int64(x.DiskFree), x.Pressure, x.CPU, x.Thermal, int64(x.Headroom), int(x.State), x.TopApp); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 var errClosed = errors.New("store: closed")
 
 // ---- rollups and retention ----------------------------------------------------

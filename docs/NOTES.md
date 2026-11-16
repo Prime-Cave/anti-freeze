@@ -45,3 +45,10 @@ Differences and fixes found while checking:
 * **Notifications** use `UNUserNotificationCenter` through the Wails notifications service. The service is started directly rather than bound, so the web UI can't send notifications. They only work from the signed `.app` bundle; elsewhere they are off. Interruption level is "active", so Focus modes silence them. The permission prompt appears once, on first launch.
 * **No alert for the state at launch.** If the Mac is already tight when Headroom starts, the icon shows it, but no notification is sent. Alerts are only for changes for the worse.
 * **Main-thread fix.** Bringing the app forward (`App.Show`) from a bound call crashed because AppKit needs the main thread. It's now dispatched to the main thread. The selftest opens the dashboard and the safety window to cover this.
+
+## M7: dashboard
+
+* **Timeline chart.** Memory in use (area) with overflow on disk stacked on top (hatched), a dashed red slowdown line (memory plus the overflow budget) and red-wash bands for slowdowns. It has a crosshair tooltip that works with the mouse and the arrow keys, an accessible summary, and a "Show as a table" view.
+* **Chart colours** are the spec tokens. A palette validator confirms the two series stay distinct for colour-blind readers (ΔE ≥ 17) and reach 3:1 against the surface in both themes. It also flags the slate `mem-used` as low-chroma. That is intended by the spec, and the overflow series carries a hatch texture as well, so identity never relies on colour alone.
+* **Demo history.** `HEADROOM_DEMO` seeds its throwaway database with a synthetic week (a daily rhythm, two slowdowns, two logged actions), so the dashboard can be shown without any real data.
+* The `frame-ancestors` directive was dropped from the CSP meta tag, because browsers ignore it in `<meta>`. The windows are never framed anyway.

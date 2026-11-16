@@ -68,6 +68,7 @@ func main() {
 	var profile machine.Profile
 	if demo != "" {
 		col = collector.NewDemo(demo)
+		seedDemoHistory(st, 8<<30, time.Now())
 		profile = machine.Profile{Model: "Demo", ModelName: "MacBook Air", Chip: "Apple M1", Arch: "arm64",
 			OSVersion: "14.6", MemoryBytes: 8 << 30, DiskBytes: 245_107_195_904, Cores: 8,
 			FirstSeen: time.Now().Add(-7 * 24 * time.Hour)}
