@@ -14,6 +14,9 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "sample" {
+		os.Exit(runSample())
+	}
 	selftest := len(os.Args) > 1 && os.Args[1] == "--selftest"
 	app := application.New(application.Options{
 		Name:        "Headroom",
