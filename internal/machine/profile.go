@@ -1,4 +1,4 @@
-// Package machine detects the Mac Headroom runs on and derives every
+// Package machine detects the Mac Anti-Freeze runs on and derives every
 // threshold from it. Nothing about any particular machine is hard-coded.
 package machine
 

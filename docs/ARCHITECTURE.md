@@ -16,16 +16,16 @@ Checked by reading the v3.1.0 source, not assumed:
 
 * **Menu bar icon state.** Wails sets an icon once and cannot switch a status item between a *template* image (monochrome, follows the menu bar) and a *coloured* image at runtime. It also has no tooltip or accessibility label on macOS (`setTooltip` is a no-op).
   `internal/tray` renders the icon in pure Go and a ~50-line Objective-C bridge finds the status bar button through public AppKit API (`NSApp.windows` → `NSStatusBarWindow` → `NSButton`). It then sets the image, the template flag, the light/dark variant and the accessibility label.
-* **Production asset serving.** Wails v3 serves the UI through a `WKURLSchemeHandler` on the `wails://` scheme. No TCP listener exists unless the app is built with the `server` or `mcp` build tags, which Headroom never uses. The `internal/policy` tests (run by `make check` and CI) fail if a networking package is imported. That no socket is open at runtime was checked by hand with `lsof` during the build; `docs/PRIVACY.md` shows how to check it yourself.
+* **Production asset serving.** Wails v3 serves the UI through a `WKURLSchemeHandler` on the `wails://` scheme. No TCP listener exists unless the app is built with the `server` or `mcp` build tags, which Anti-Freeze never uses. The `internal/policy` tests (run by `make check` and CI) fail if a networking package is imported. That no socket is open at runtime was checked by hand with `lsof` during the build; `docs/PRIVACY.md` shows how to check it yourself.
 
 ## Build
 
-`make app` builds the frontend, compiles arm64 and amd64 binaries with `-trimpath` (so no local paths end up in the binary), `lipo`s them into a universal binary, assembles `Headroom.app` (`LSUIElement`, minimum macOS 13) and ad-hoc signs it with the hardened runtime.
+`make app` builds the frontend, compiles arm64 and amd64 binaries with `-trimpath` (so no local paths end up in the binary), `lipo`s them into a universal binary, assembles `Anti-Freeze.app` (`LSUIElement`, minimum macOS 13) and ad-hoc signs it with the hardened runtime.
 
 ## Packages
 
 ```
-cmd/headroom/        main: wires everything; `headroom sample` prints one JSON snapshot
+cmd/anti-freeze/        main: wires everything; `anti-freeze sample` prints one JSON snapshot
 internal/machine/    machine profile (detected on first run) and the thresholds derived from it
 internal/collector/  cgo samplers + Collector interface + Fake (replay) + synthetic scenarios
 internal/analyzer/   state, headroom, forecast, attribution, episodes, learning
@@ -95,4 +95,4 @@ After 7 days of history and at least 2 episodes, `analyzer.Learn` moves threshol
 * **Swap budget** becomes 90% of the median swap at episode start. It never goes above the default, and never below a quarter of the default (swap near zero at the start means swap wasn't the trigger).
 * **Disk reserve** becomes 110% of the median disk free at episode start, but only when disk was actually low then. It never goes below the default or above twice the default.
 
-Learning only ever makes Headroom more cautious.
+Learning only ever makes Anti-Freeze more cautious.

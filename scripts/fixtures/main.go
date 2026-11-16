@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
 )
 
 func main() {

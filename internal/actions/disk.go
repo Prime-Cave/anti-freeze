@@ -13,14 +13,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
 )
 
-// Disk scanning (section 5.4). Headroom looks only at these places, only when
+// Disk scanning (section 5.4). Anti-Freeze looks only at these places, only when
 // asked, and never deletes: it can show an item in Finder or move it to the
 // Trash after a confirmation that names every item and the total size.
 
-// DiskItem is one place Headroom measured.
+// DiskItem is one place Anti-Freeze measured.
 type DiskItem struct {
 	Name      string `json:"name"`
 	Path      string `json:"path"`
@@ -68,8 +68,8 @@ type trashTicket struct {
 	expires time.Time
 }
 
-// NeedsAccess is shown when macOS denies Headroom a folder.
-const NeedsAccess = "Needs Full Disk Access to measure. Headroom works without it."
+// NeedsAccess is shown when macOS denies Anti-Freeze a folder.
+const NeedsAccess = "Needs Full Disk Access to measure. Anti-Freeze works without it."
 
 // ScanLimit caps how long one place is walked.
 const ScanLimit = 20 * time.Second
@@ -79,7 +79,7 @@ type place struct {
 	review          bool
 }
 
-// The only places Headroom scans. Paths are relative to the home folder.
+// The only places Anti-Freeze scans. Paths are relative to the home folder.
 var places = []place{
 	{"Downloads", "Downloads", "downloads", true},
 	{"App caches", "Library/Caches", "caches", true},
@@ -92,7 +92,7 @@ var places = []place{
 	{"Cargo download cache", ".cargo/registry/cache", "developer", true},
 	// Measured and shown only: backups are managed in Finder, never trashed
 	// piece by piece. macOS usually blocks this folder without Full Disk
-	// Access, and Headroom then shows the NeedsAccess note instead of asking.
+	// Access, and Anti-Freeze then shows the NeedsAccess note instead of asking.
 	{"iPhone and iPad backups", "Library/Application Support/MobileSync/Backup", "backups", false},
 }
 
@@ -214,10 +214,10 @@ func allocated(path string, d fs.DirEntry) uint64 {
 }
 
 // allowedRoot returns the reviewable place that contains path (strictly
-// inside it), or "" if path is outside every place Headroom may touch.
+// inside it), or "" if path is outside every place Anti-Freeze may touch.
 func (m *Manager) allowedRoot(path string, review bool) (string, error) {
 	if !filepath.IsAbs(path) || filepath.Clean(path) != path {
-		return "", &Error{"That isn't a place Headroom looks after."}
+		return "", &Error{"That isn't a place Anti-Freeze looks after."}
 	}
 	for _, p := range places {
 		if review && !p.review {
@@ -238,12 +238,12 @@ func (m *Manager) allowedRoot(path string, review bool) (string, error) {
 			}
 			realRoot, err := filepath.EvalSymlinks(root)
 			if err != nil || realParent != realRoot+strings.TrimPrefix(parent, root) {
-				return "", &Error{"That item is reached through a link, so Headroom won't touch it."}
+				return "", &Error{"That item is reached through a link, so Anti-Freeze won't touch it."}
 			}
 			return root, nil
 		}
 	}
-	return "", &Error{"That isn't a place Headroom looks after."}
+	return "", &Error{"That isn't a place Anti-Freeze looks after."}
 }
 
 // LargeFiles lists the biggest items directly inside one reviewable place.
@@ -258,7 +258,7 @@ func (m *Manager) LargeFiles(ctx context.Context, placePath string) ([]LargeFile
 		}
 	}
 	if root == "" {
-		return nil, &Error{"That isn't a place Headroom looks after."}
+		return nil, &Error{"That isn't a place Anti-Freeze looks after."}
 	}
 	entries, err := os.ReadDir(root)
 	if err != nil {
@@ -315,7 +315,7 @@ func (m *Manager) PlanTrash(ctx context.Context, paths []string) (TrashPlan, err
 		if m.DryRun {
 			f, ok := demoFile(p)
 			if !ok {
-				return TrashPlan{}, &Error{"That isn't a place Headroom looks after."}
+				return TrashPlan{}, &Error{"That isn't a place Anti-Freeze looks after."}
 			}
 			t.entries = append(t.entries, trashEntry{path: p, size: f.Size})
 			t.total += f.Size
@@ -412,7 +412,7 @@ func (m *Manager) ConfirmTrash(token string) (Result, error) {
 	return Result{OK: len(failed) == 0, Freed: freed, Message: msg}, nil
 }
 
-// Reveal shows an item in Finder. Only places Headroom looks after.
+// Reveal shows an item in Finder. Only places Anti-Freeze looks after.
 func (m *Manager) Reveal(path string) error {
 	if m.DryRun {
 		return nil

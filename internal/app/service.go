@@ -10,12 +10,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/actions"
-	"github.com/Prime-Cave/headroom/internal/analyzer"
-	"github.com/Prime-Cave/headroom/internal/collector"
-	"github.com/Prime-Cave/headroom/internal/machine"
-	"github.com/Prime-Cave/headroom/internal/notify"
-	"github.com/Prime-Cave/headroom/internal/store"
+	"github.com/Prime-Cave/anti-freeze/internal/actions"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/notify"
+	"github.com/Prime-Cave/anti-freeze/internal/store"
 )
 
 // Sampling cadence (section 3).
@@ -27,7 +27,7 @@ const (
 )
 
 // UI is what the service needs from the windowing layer. Implemented in
-// cmd/headroom with Wails; a fake in tests.
+// cmd/anti-freeze with Wails; a fake in tests.
 type UI interface {
 	Emit(event string, data any)
 	PanelsVisible() bool
@@ -40,7 +40,7 @@ type UI interface {
 	ResizeSafety(height int)
 	// SaveFileDialog asks where to save a file; "" if cancelled.
 	SaveFileDialog(defaultName string) (string, error)
-	// Quit quits Headroom itself.
+	// Quit quits Anti-Freeze itself.
 	Quit()
 }
 
@@ -54,12 +54,12 @@ type Config struct {
 	// System performs actions (AppKit in the app). Demo mode never calls it
 	// for quits or trash.
 	System actions.System
-	// LoginItem registers Headroom to start at login (SMAppService); nil in
+	// LoginItem registers Anti-Freeze to start at login (SMAppService); nil in
 	// demo mode and selftests, so they never change the Mac's login items.
 	LoginItem LoginItem
 	// AppIcon renders an app bundle's icon as PNG.
 	AppIcon func(bundlePath string) ([]byte, bool)
-	// Selftest, if set, receives rendered page text (headroom --selftest).
+	// Selftest, if set, receives rendered page text (anti-freeze --selftest).
 	Selftest func(page, text string)
 }
 
@@ -138,7 +138,7 @@ func (s *Service) Run(ctx context.Context, ui UI) {
 	s.sampleSystem()
 	lastSys, lastProc, lastMaint := time.Now(), time.Now(), time.Time{}
 	// Sleep until the next sample is due rather than ticking: an idle
-	// Headroom wakes about once every 5 s. Opening a panel calls Wake.
+	// Anti-Freeze wakes about once every 5 s. Opening a panel calls Wake.
 	timer := time.NewTimer(SlowInterval)
 	defer timer.Stop()
 	for {

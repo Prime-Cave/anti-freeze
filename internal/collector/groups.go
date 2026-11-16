@@ -123,7 +123,7 @@ func Group(t ProcessTable) []AppGroup {
 func protectReason(p Process, bundle string, t ProcessTable) string {
 	switch {
 	case p.PID == t.SelfPID:
-		return "Headroom itself"
+		return "Anti-Freeze itself"
 	case protectedNames[p.Name]:
 		return "Part of macOS"
 	case p.UID != t.SelfUID:

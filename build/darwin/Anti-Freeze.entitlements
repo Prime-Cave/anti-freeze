@@ -2,6 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Headroom needs no special entitlements: no network, no camera, no files beyond the user's own. -->
+	<!-- Anti-Freeze needs no special entitlements: no network, no camera, no files beyond the user's own. -->
 </dict>
 </plist>

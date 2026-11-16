@@ -36,11 +36,11 @@ jobs:
       - name: Build unsigned DMG
         run: |
           make dmg VERSION="${GITHUB_REF_NAME#v}"
-          cd build/out && shasum -a 256 Headroom.dmg > Headroom.dmg.sha256
+          cd build/out && shasum -a 256 Anti-Freeze.dmg > Anti-Freeze.dmg.sha256
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" build/out/Headroom.dmg build/out/Headroom.dmg.sha256 \
-            --repo "$GITHUB_REPOSITORY" --title "Headroom $GITHUB_REF_NAME" --generate-notes \
+          gh release create "$GITHUB_REF_NAME" build/out/Anti-Freeze.dmg build/out/Anti-Freeze.dmg.sha256 \
+            --repo "$GITHUB_REPOSITORY" --title "Anti-Freeze $GITHUB_REF_NAME" --generate-notes \
             --notes "Unsigned build. The first time, open it, then allow it in System Settings › Privacy & Security › Open Anyway (see Install in the README)."

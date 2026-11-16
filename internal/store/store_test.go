@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/analyzer"
-	"github.com/Prime-Cave/headroom/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
 )
 
 const GB = uint64(1) << 30
@@ -18,7 +18,7 @@ const GB = uint64(1) << 30
 func open(t *testing.T) *Store {
 	t.Helper()
 	dir := t.TempDir()
-	s, err := Open(filepath.Join(dir, "Headroom", "headroom.db"))
+	s, err := Open(filepath.Join(dir, "Anti-Freeze", "anti-freeze.db"))
 	if err != nil {
 		t.Fatal(err)
 	}

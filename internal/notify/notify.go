@@ -1,4 +1,4 @@
-// Package notify decides when Headroom shows a macOS notification and what it
+// Package notify decides when Anti-Freeze shows a macOS notification and what it
 // says (sections 5 and 7.4). The decision logic is pure and tested; sending
 // goes through a Sender (UNUserNotificationCenter in the app).
 //
@@ -19,13 +19,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
 )
 
 // Identifiers shared with the Sender.
 const (
-	CategoryQuit    = "headroom.quit"    // has "Quit [App]…" and "Show details"
-	CategoryDetails = "headroom.details" // "Show details" only
+	CategoryQuit    = "anti-freeze.quit"    // has "Quit [App]…" and "Show details"
+	CategoryDetails = "anti-freeze.details" // "Show details" only
 	ActionQuit      = "quit"
 	ActionDetails   = "details"
 	DefaultCooldown = 20 * time.Minute
@@ -78,7 +78,7 @@ func (d *Decider) Decide(st analyzer.Status, now time.Time, enabled bool) (Note,
 	d.lastState = st.State
 	if !d.seeded {
 		// The state at launch is not a change. (If the Mac is already
-		// tight when Headroom starts, the icon says so; no alert.)
+		// tight when Anti-Freeze starts, the icon says so; no alert.)
 		d.seeded = true
 		return Note{}, false
 	}
@@ -125,7 +125,7 @@ func primaryCause(cs []analyzer.Cause) analyzer.Cause {
 //	Chrome is using 3.1 GB and still growing. Slowdowns likely in about 15 minutes.
 //	[Quit Chrome…] [Show details]
 func Compose(st analyzer.Status, cause analyzer.Cause, now time.Time) Note {
-	n := Note{ID: fmt.Sprintf("headroom-%d", now.Unix()), Cause: cause, Category: CategoryDetails}
+	n := Note{ID: fmt.Sprintf("anti-freeze-%d", now.Unix()), Cause: cause, Category: CategoryDetails}
 	if st.State == analyzer.Critical {
 		n.Title = "Slowdown likely"
 	} else {
@@ -158,7 +158,7 @@ func Compose(st analyzer.Status, cause analyzer.Cause, now time.Time) Note {
 	if st.Forecast.Confident {
 		parts = append(parts, st.Forecast.Text)
 	} else if len(parts) == 0 {
-		parts = append(parts, "Memory is running low. Open Headroom to see what's using it.")
+		parts = append(parts, "Memory is running low. Open Anti-Freeze to see what's using it.")
 	}
 	n.Body = strings.Join(parts, " ")
 	return n

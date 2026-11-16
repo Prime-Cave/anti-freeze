@@ -1,17 +1,17 @@
 #!/bin/bash
-# Measures Headroom's own CPU and memory use (README "Performance").
+# Measures Anti-Freeze's own CPU and memory use (README "Performance").
 #
-#   scripts/measure.sh [path/to/Headroom.app] [minutes]
+#   scripts/measure.sh [path/to/Anti-Freeze.app] [minutes]
 #
 # Launches the app, leaves its panels closed, and samples every 10 s:
 # the main process and the WebKit helper processes that start with it
 # (they are not its children, so they are found by comparing the list
 # before and after launch). Quits the app normally at the end.
 set -euo pipefail
-APP="${1:-build/out/Headroom.app}"
+APP="${1:-build/out/Anti-Freeze.app}"
 APP="$(cd "$(dirname "$APP")" && pwd)/$(basename "$APP")"
 MINUTES="${2:-10}"
-BIN="$APP/Contents/MacOS/Headroom"
+BIN="$APP/Contents/MacOS/Anti-Freeze"
 
 webkit_pids() { pgrep -f "com.apple.WebKit" | sort || true; }
 
@@ -23,7 +23,7 @@ for _ in $(seq 1 50); do
   [ -n "$pid" ] && break
   sleep 0.2
 done
-[ -n "$pid" ] || { echo "Headroom did not start"; exit 1; }
+[ -n "$pid" ] || { echo "Anti-Freeze did not start"; exit 1; }
 sleep 8
 helpers="$(comm -13 <(echo "$before") <(webkit_pids) | tr '\n' ' ')"
 

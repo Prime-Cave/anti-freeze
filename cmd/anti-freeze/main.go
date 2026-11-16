@@ -1,12 +1,12 @@
-// Command headroom is a menu bar app that warns you before your Mac slows down.
+// Command anti-freeze is a menu bar app that warns you before your Mac slows down.
 //
-//	headroom             run the menu bar app
-//	headroom sample      print one JSON snapshot (compare with Activity Monitor)
-//	headroom --selftest  start, report the status item to stdout, quit
-//	headroom --version   print the version
-//	headroom --login-item status|on|off   show or change start at login (bundle only)
+//	anti-freeze             run the menu bar app
+//	anti-freeze sample      print one JSON snapshot (compare with Activity Monitor)
+//	anti-freeze --selftest  start, report the status item to stdout, quit
+//	anti-freeze --version   print the version
+//	anti-freeze --login-item status|on|off   show or change start at login (bundle only)
 //
-// HEADROOM_DEMO=ok|tight|critical|recover replays a synthetic slowdown
+// ANTIFREEZE_DEMO=ok|tight|critical|recover replays a synthetic slowdown
 // instead of reading this Mac, with a throwaway database. Actions in demo
 // mode never touch real apps or files.
 package main
@@ -20,13 +20,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Prime-Cave/headroom/frontend"
-	"github.com/Prime-Cave/headroom/internal/app"
-	"github.com/Prime-Cave/headroom/internal/collector"
-	"github.com/Prime-Cave/headroom/internal/machine"
-	"github.com/Prime-Cave/headroom/internal/macos"
-	"github.com/Prime-Cave/headroom/internal/store"
-	"github.com/Prime-Cave/headroom/internal/tray"
+	"github.com/Prime-Cave/anti-freeze/frontend"
+	"github.com/Prime-Cave/anti-freeze/internal/app"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/macos"
+	"github.com/Prime-Cave/anti-freeze/internal/store"
+	"github.com/Prime-Cave/anti-freeze/internal/tray"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
@@ -40,7 +40,7 @@ const (
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
-		fmt.Println("Headroom", version)
+		fmt.Println("Anti-Freeze", version)
 		return
 	}
 	if len(os.Args) > 1 && os.Args[1] == "sample" {
@@ -50,7 +50,7 @@ func main() {
 		os.Exit(runLoginItem(os.Args[2]))
 	}
 	selftest := len(os.Args) > 1 && os.Args[1] == "--selftest"
-	demo := os.Getenv("HEADROOM_DEMO")
+	demo := os.Getenv("ANTIFREEZE_DEMO")
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
 
 	// Storage. Demo mode never writes to the real history.
@@ -59,16 +59,16 @@ func main() {
 		log.Fatal(err)
 	}
 	if demo != "" {
-		dir, err := os.MkdirTemp("", "headroom-demo-*")
+		dir, err := os.MkdirTemp("", "anti-freeze-demo-*")
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer func() { _ = os.RemoveAll(dir) }()
-		dbPath = filepath.Join(dir, "headroom.db")
+		dbPath = filepath.Join(dir, "anti-freeze.db")
 	}
 	st, err := store.Open(dbPath)
 	if err != nil {
-		log.Fatalf("Headroom can't open its history at %s: %v", dbPath, err)
+		log.Fatalf("Anti-Freeze can't open its history at %s: %v", dbPath, err)
 	}
 	defer func() { _ = st.Close() }()
 
@@ -97,7 +97,7 @@ func main() {
 	svc := app.New(cfg)
 
 	wapp := application.New(application.Options{
-		Name:        "Headroom",
+		Name:        "Anti-Freeze",
 		Description: "Warns you before your Mac slows down",
 		Services:    []application.Service{application.NewService(app.NewAPI(svc))},
 		Assets:      application.AssetOptions{Handler: application.BundledAssetFileServer(frontend.Assets())},
@@ -105,7 +105,7 @@ func main() {
 			ActivationPolicy: application.ActivationPolicyAccessory,
 			ApplicationShouldTerminateAfterLastWindowClosed: false,
 		},
-		SingleInstance: &application.SingleInstanceOptions{UniqueID: "io.github.prime-cave.headroom"},
+		SingleInstance: &application.SingleInstanceOptions{UniqueID: "io.github.prime-cave.anti-freeze"},
 	})
 
 	tr := wapp.SystemTray.New()
@@ -130,7 +130,7 @@ func main() {
 	ui := &wailsUI{app: wapp, tray: tr, dropdown: dropdown}
 	ui.newDashboard = func(section string) *application.WebviewWindow {
 		w := wapp.Window.NewWithOptions(application.WebviewWindowOptions{
-			Name: "dashboard", Title: "Headroom", URL: "/dashboard.html#" + section,
+			Name: "dashboard", Title: "Anti-Freeze", URL: "/dashboard.html#" + section,
 			Width: 1120, Height: 760, MinWidth: 900, MinHeight: 600,
 			BackgroundColour:           application.NewRGB(0xF3, 0xF5, 0xF8),
 			DefaultContextMenuDisabled: true,
@@ -156,7 +156,7 @@ func main() {
 	menu.Add("Open dashboard").OnClick(func(*application.Context) { svc.OpenDashboard("overview") })
 	menu.Add("Settings…").OnClick(func(*application.Context) { svc.OpenDashboard("settings") })
 	menu.AddSeparator()
-	menu.Add("Quit Headroom").OnClick(func(*application.Context) { wapp.Quit() })
+	menu.Add("Quit Anti-Freeze").OnClick(func(*application.Context) { wapp.Quit() })
 	tr.SetMenu(menu)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -181,7 +181,7 @@ func main() {
 				dropdown.Show()
 				ui.ShowDashboard("overview")
 				time.Sleep(3 * time.Second)
-				js := "window.__headroomReport && window.__headroomReport()"
+				js := "window.__antiFreezeReport && window.__antiFreezeReport()"
 				dropdown.ExecJS(js)
 				if w := ui.window("dashboard"); w != nil {
 					w.ExecJS(js)
@@ -250,7 +250,7 @@ func loadProfile(st *store.Store, c collector.Collector) machine.Profile {
 // troubleshooting (Settings › Start at login does the same).
 func runLoginItem(cmd string) int {
 	if !macos.InBundle() {
-		fmt.Println("Start at login only works when Headroom runs from its .app bundle.")
+		fmt.Println("Start at login only works when Anti-Freeze runs from its .app bundle.")
 		return 1
 	}
 	switch cmd {

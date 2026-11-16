@@ -17,7 +17,7 @@ import (
 	"unsafe"
 )
 
-// LoginStatus is the state of Headroom's login item.
+// LoginStatus is the state of Anti-Freeze's login item.
 type LoginStatus int
 
 const (
@@ -27,7 +27,7 @@ const (
 	LoginUnavailable   LoginStatus = 3 // not running from an .app bundle
 )
 
-// InBundle reports whether Headroom is running from an .app bundle.
+// InBundle reports whether Anti-Freeze is running from an .app bundle.
 func InBundle() bool { return C.hmInBundle() == 1 }
 
 // InApplications reports whether the bundle runs from /Applications or
@@ -37,7 +37,7 @@ func InApplications() bool { return C.hmInApplications() == 1 }
 // LoginItemStatus reads the login item state from SMAppService.
 func LoginItemStatus() LoginStatus { return LoginStatus(C.hmLoginStatus()) }
 
-// SetLoginItem registers or unregisters Headroom as a login item.
+// SetLoginItem registers or unregisters Anti-Freeze as a login item.
 func SetLoginItem(enabled bool) error {
 	v := 0
 	if enabled {

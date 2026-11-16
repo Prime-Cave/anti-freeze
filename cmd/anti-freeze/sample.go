@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
 )
 
 // runSample prints one JSON snapshot: system figures plus the top app groups.
-// Used to compare Headroom's numbers with Activity Monitor.
+// Used to compare Anti-Freeze's numbers with Activity Monitor.
 func runSample() int {
 	c := collector.NewNative()
 	time.Sleep(time.Second) // give CPU load a one-second window

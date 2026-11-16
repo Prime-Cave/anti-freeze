@@ -1,6 +1,6 @@
 // Native samplers. Public macOS APIs only; no private frameworks, no root.
-#ifndef HEADROOM_NATIVE_H
-#define HEADROOM_NATIVE_H
+#ifndef ANTIFREEZE_NATIVE_H
+#define ANTIFREEZE_NATIVE_H
 #include <stdint.h>
 #include <stddef.h>
 

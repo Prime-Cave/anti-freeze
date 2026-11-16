@@ -142,11 +142,11 @@ func demoTable(t time.Time, browser uint64, cpu uint64) ProcessTable {
 		Process{PID: 1, UID: 0, Name: "launchd", Path: "/sbin/launchd"},
 		Process{PID: 150, UID: 88, Name: "WindowServer", Path: "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"},
 		Process{PID: 300, UID: uid, Name: "Finder", Path: "/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder", Footprint: 150 * mib, Accessible: true},
-		Process{PID: 999, UID: uid, Name: "Headroom", Path: "/Applications/Headroom.app/Contents/MacOS/Headroom", Footprint: 45 * mib, Accessible: true},
+		Process{PID: 999, UID: uid, Name: "Anti-Freeze", Path: "/Applications/Anti-Freeze.app/Contents/MacOS/Anti-Freeze", Footprint: 45 * mib, Accessible: true},
 	)
 	pt.Apps = append(pt.Apps,
 		RunningApp{PID: 300, Name: "Finder", BundleID: "com.apple.finder", BundlePath: "/System/Library/CoreServices/Finder.app", Regular: true},
-		RunningApp{PID: 999, Name: "Headroom", BundlePath: "/Applications/Headroom.app"},
+		RunningApp{PID: 999, Name: "Anti-Freeze", BundlePath: "/Applications/Anti-Freeze.app"},
 	)
 	return pt
 }

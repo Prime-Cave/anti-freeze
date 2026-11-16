@@ -1,13 +1,13 @@
 # Contributing
 
-Thanks for helping. Headroom is small on purpose. Changes that keep it small, private and safe are the easiest to accept.
+Thanks for helping. Anti-Freeze is small on purpose. Changes that keep it small, private and safe are the easiest to accept.
 
 ## Build and test
 
 You need macOS 13 or later, Go 1.26+, Node 20+ and the Xcode command line tools (`xcode-select --install`).
 
 ```bash
-make app          # build/out/Headroom.app (universal, ad-hoc signed)
+make app          # build/out/Anti-Freeze.app (universal, ad-hoc signed)
 make check        # go vet, go test -race, golangci-lint, typecheck, contrast check
 make integration  # launches and quits a throwaway helper app through AppKit
 make stress       # allocates memory in a child process so you can watch the states change
@@ -18,7 +18,7 @@ To work on the UI without the Go side, run `npx --prefix frontend vite frontend`
 To run the real app on synthetic data (nothing on your Mac is read, quit or moved):
 
 ```bash
-HEADROOM_DEMO=tight build/out/Headroom.app/Contents/MacOS/Headroom
+ANTIFREEZE_DEMO=tight build/out/Anti-Freeze.app/Contents/MacOS/Anti-Freeze
 ```
 
 ## Rules that every change must keep

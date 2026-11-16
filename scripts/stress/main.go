@@ -1,4 +1,4 @@
-// Command stress makes memory pressure on purpose, so you can watch Headroom
+// Command stress makes memory pressure on purpose, so you can watch Anti-Freeze
 // go from ok to tight to critical on your own Mac (make stress).
 //
 // It starts a child process that allocates incompressible memory in steps,
@@ -59,7 +59,7 @@ func main() {
 
 	fmt.Printf("Allocating up to %.1f GB (%.2f × %.0f GB memory), %d MB every %s, then holding for %s.\n",
 		gb(goal), *target, gb(mem), *stepMB, *every, *hold)
-	fmt.Println("Watch the Headroom menu bar icon. Press Ctrl-C to stop at any time.")
+	fmt.Println("Watch the Anti-Freeze menu bar icon. Press Ctrl-C to stop at any time.")
 
 	self, err := os.Executable()
 	if err != nil {

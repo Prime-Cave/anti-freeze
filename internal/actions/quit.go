@@ -1,4 +1,4 @@
-// Package actions does the few things Headroom changes on the Mac, with the
+// Package actions does the few things Anti-Freeze changes on the Mac, with the
 // safety rules from section 5 built in:
 //
 //   - An app is never quit on one click. ConfirmQuit only accepts a token from
@@ -20,8 +20,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/analyzer"
-	"github.com/Prime-Cave/headroom/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
 )
 
 // System is the macOS side (internal/macos in the app, a fake in tests).
@@ -154,7 +154,7 @@ func (m *Manager) PrepareQuit(key string) (SafetyCheck, error) {
 			plural(act.Children, "process", "processes"), plural(act.Children, "is", "are")))
 	}
 	if act.Window < 10*time.Second {
-		sc.Evidence = append(sc.Evidence, "Headroom has only just started watching it, so this is a short reading.")
+		sc.Evidence = append(sc.Evidence, "Anti-Freeze has only just started watching it, so this is a short reading.")
 	}
 	sc.Token = newToken()
 	sc.CanForceQuit = m.ForceQuitAllowed != nil && m.ForceQuitAllowed()
@@ -271,18 +271,18 @@ func (m *Manager) log(kind, target string, freed uint64, detail string) {
 // protectedNames mirrors the brief's list (section 5.5). The collector marks
 // these too; this is the second, independent check at the point of action.
 var protectedNames = map[string]bool{
-	"Headroom": true, "WindowServer": true, "kernel_task": true, "loginwindow": true,
+	"Anti-Freeze": true, "WindowServer": true, "kernel_task": true, "loginwindow": true,
 	"Finder": true, "Dock": true, "SystemUIServer": true, "launchd": true,
 }
 
 func quittable(g collector.AppGroup) error {
 	switch {
 	case g.Protected:
-		return &Error{fmt.Sprintf("%s is protected (%s), so Headroom won't quit it.", g.Name, strings.ToLower(g.Reason))}
+		return &Error{fmt.Sprintf("%s is protected (%s), so Anti-Freeze won't quit it.", g.Name, strings.ToLower(g.Reason))}
 	case protectedNames[g.Name]:
-		return &Error{g.Name + " is part of macOS, so Headroom won't quit it."}
+		return &Error{g.Name + " is part of macOS, so Anti-Freeze won't quit it."}
 	case g.BundlePath == "" || g.MainPID <= 1:
-		return &Error{g.Name + " has no app bundle, so Headroom won't quit it."}
+		return &Error{g.Name + " has no app bundle, so Anti-Freeze won't quit it."}
 	}
 	return nil
 }

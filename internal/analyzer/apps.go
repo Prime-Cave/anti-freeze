@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
 )
 
 // AppRow is one app in the "Using the most memory" list and the Apps table.

@@ -4,13 +4,13 @@ import (
 	"math"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/analyzer"
-	"github.com/Prime-Cave/headroom/internal/store"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/store"
 )
 
 // seedDemoHistory fills the throwaway demo database with a synthetic week:
 // a daily rhythm, two slowdowns and two logged actions. Nothing here comes
-// from a real Mac. Only used with HEADROOM_DEMO.
+// from a real Mac. Only used with ANTIFREEZE_DEMO.
 func seedDemoHistory(st *store.Store, memTotal uint64, now time.Time) {
 	const gb = float64(1 << 30)
 	start := now.Add(-7 * 24 * time.Hour).Truncate(time.Minute)

@@ -5,8 +5,8 @@ package analyzer
 import (
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/collector"
-	"github.com/Prime-Cave/headroom/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
 )
 
 // State is the overall verdict.

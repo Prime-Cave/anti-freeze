@@ -46,7 +46,7 @@ function render(sc: SafetyCheck) {
 
   const extra = sc.evidence.filter((e) => !e.startsWith("Processor use") && !e.startsWith("It is reading"));
   const diskBusy = sc.diskRate >= 512 * 1024;
-  const table = h("table", { class: "evidence", "aria-label": "What Headroom checked" },
+  const table = h("table", { class: "evidence", "aria-label": "What Anti-Freeze checked" },
     h("tbody", null,
       evidenceRow(`Processor use, last ${Math.min(30, Math.round(sc.windowSec)) || 30} seconds`, percent(sc.cpu), sc.cpu >= 10),
       evidenceRow("Reading or writing files", diskBusy ? `Yes, ${bytes(sc.diskRate)}/s` : "No", diskBusy),
@@ -61,7 +61,7 @@ function render(sc: SafetyCheck) {
         h("p", { id: "sc-body", class: "body" }, body))),
     table,
     extra.length ? h("ul", { class: "notes" }, extra.map((e) => h("li", null, e))) : null,
-    h("p", { class: "note" }, "Headroom asks the app to quit normally, so it can ask you to save first. It never force quits unless you choose that separately."),
+    h("p", { class: "note" }, "Anti-Freeze asks the app to quit normally, so it can ask you to save first. It never force quits unless you choose that separately."),
     h("p", { class: "result", role: "status", "aria-live": "polite", hidden: true }),
     h("div", { class: "buttons" }, quit, keep),
     sc.canForceQuit ? h("div", { class: "force" },
@@ -158,7 +158,7 @@ function showError(e: unknown) {
   dialog.append(
     h("div", { class: "head" },
       h("span", { class: "warn-icon" }, icon.warn()),
-      h("div", null, h("h1", { id: "sc-title" }, "Headroom can't quit that app"),
+      h("div", null, h("h1", { id: "sc-title" }, "Anti-Freeze can't quit that app"),
         h("p", { id: "sc-body", class: "body" }, errorText(e)))),
     h("div", { class: "buttons" }, ok),
   );

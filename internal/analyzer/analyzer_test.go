@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/collector"
-	"github.com/Prime-Cave/headroom/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
 )
 
 const GB = uint64(1) << 30

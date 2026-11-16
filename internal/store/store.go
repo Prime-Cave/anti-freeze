@@ -1,5 +1,5 @@
-// Package store keeps Headroom's history in SQLite at
-// ~/Library/Application Support/Headroom/headroom.db (folder 0700, file 0600).
+// Package store keeps Anti-Freeze's history in SQLite at
+// ~/Library/Application Support/Anti-Freeze/anti-freeze.db (folder 0700, file 0600).
 //
 // Retention: raw samples 24 h, 1-minute rollups 7 days, 10-minute rollups for
 // the user's history setting (default 90 days), episodes and the action log
@@ -17,8 +17,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/analyzer"
-	"github.com/Prime-Cave/headroom/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
 	_ "modernc.org/sqlite" // pure-Go SQLite driver
 )
 
@@ -41,13 +41,13 @@ type Store struct {
 	TenMinRetention time.Duration
 }
 
-// DefaultPath is ~/Library/Application Support/Headroom/headroom.db.
+// DefaultPath is ~/Library/Application Support/Anti-Freeze/anti-freeze.db.
 func DefaultPath() (string, error) {
 	dir, err := os.UserConfigDir() // ~/Library/Application Support on macOS
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, "Headroom", "headroom.db"), nil
+	return filepath.Join(dir, "Anti-Freeze", "anti-freeze.db"), nil
 }
 
 // Open opens (creating if needed) the database at path with private
@@ -493,7 +493,7 @@ func (s *Store) Episodes(from, to time.Time) ([]analyzer.Episode, error) {
 
 // ---- action log -------------------------------------------------------------
 
-// Action is one thing Headroom did (section 5.6).
+// Action is one thing Anti-Freeze did (section 5.6).
 type Action struct {
 	ID     int64     `json:"id"`
 	Time   time.Time `json:"time"`

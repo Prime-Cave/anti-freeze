@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Prime-Cave/headroom/internal/machine"
-	"github.com/Prime-Cave/headroom/internal/store"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/store"
 )
 
 type fakeLogin struct {

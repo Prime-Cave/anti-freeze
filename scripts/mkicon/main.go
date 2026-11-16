@@ -1,4 +1,4 @@
-// Command mkicon renders Headroom's app icon (.icns) from code, so no binary
+// Command mkicon renders Anti-Freeze's app icon (.icns) from code, so no binary
 // image assets live in the repo. It draws a slate squircle with the runway bar:
 // memory on the left, disk on the right, hatched overflow across the gap.
 package main
@@ -21,7 +21,7 @@ func main() {
 	pngOut := flag.String("png", "", "optional: also write a 512px PNG here")
 	flag.Parse()
 
-	dir, err := os.MkdirTemp("", "headroom-iconset-*")
+	dir, err := os.MkdirTemp("", "anti-freeze-iconset-*")
 	if err != nil {
 		log.Fatal(err)
 	}

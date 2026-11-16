@@ -1,13 +1,13 @@
 package analyzer
 
 import (
-	"github.com/Prime-Cave/headroom/internal/collector"
-	"github.com/Prime-Cave/headroom/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
 )
 
 // Headroom is the "to spare" number and its parts, in bytes.
 //
-//	headroom = free + reclaimable (cached files) + purgeable + safe swap allowance
+//	anti-freeze = free + reclaimable (cached files) + purgeable + safe swap allowance
 //	safe swap allowance = min( SwapBudget − swap used,  disk free − DiskReserve ),  never below 0
 //
 // free + reclaimable + purgeable is the memory not in use: total − (app +

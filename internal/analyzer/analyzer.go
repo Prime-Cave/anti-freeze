@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/collector"
-	"github.com/Prime-Cave/headroom/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
 )
 
 // Runway is the data behind the runway bar, in bytes.

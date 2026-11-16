@@ -7,7 +7,7 @@ import type {
   Settings, Status, Timeline, TrashPlan,
 } from "./types";
 
-const PREFIX = "github.com/Prime-Cave/headroom/internal/app.API.";
+const PREFIX = "github.com/Prime-Cave/anti-freeze/internal/app.API.";
 
 type Backend = {
   call<T>(method: string, ...args: unknown[]): Promise<T>;
@@ -93,12 +93,12 @@ export const api = {
   requestNotifications: () => call<NotifyStatus>("RequestNotifications"),
   openNotificationSettings: () => call<void>("OpenNotificationSettings"),
   openLoginItemsSettings: () => call<void>("OpenLoginItemsSettings"),
-  quitHeadroom: () => call<void>("QuitHeadroom"),
+  quitAntiFreeze: () => call<void>("QuitAntiFreeze"),
   appIcon: (bundlePath: string) => call<string>("AppIcon", bundlePath),
   resizeSafety: (h: number) => call<void>("ResizeSafety", h),
 };
 
-// Used only by `headroom --selftest`: native code calls this to have the page
+// Used only by `anti-freeze --selftest`: native code calls this to have the page
 // report the text it rendered. It can only send text to the app itself.
-(window as any).__headroomReport = () =>
+(window as any).__antiFreezeReport = () =>
   call<void>("SelftestReport", document.body.className, document.body.innerText).catch(() => {});

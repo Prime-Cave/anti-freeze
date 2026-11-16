@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
 )
 
 func status(state analyzer.State, causes ...analyzer.Cause) analyzer.Status {

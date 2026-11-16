@@ -256,7 +256,7 @@ const memChart = timelineChart();
 mem.append(
   card("Right now", memRunway.root, memFacts),
   card("How much room is left", h("p", { class: "lead" },
-    "Headroom adds up memory that is free now, memory macOS can take back from caches, and how far overflow can grow on disk before things slow down."),
+    "Anti-Freeze adds up memory that is free now, memory macOS can take back from caches, and how far overflow can grow on disk before things slow down."),
   memBreak()),
   card("Last 24 hours", memChart.root),
 );
@@ -281,7 +281,7 @@ function renderMemory() {
   const pressure: Record<string, string> = { normal: "Normal", warn: "Raised", critical: "High" };
   fact(memFacts, "Memory pressure", pressure[st.pressure] ?? NOT_AVAILABLE, "macOS's own measure of how hard memory is working");
   const th = st.thresholds;
-  if (th?.swapBudget) fact(memFacts, "Overflow budget", bytes(th.swapBudget), "Swap Headroom allows before calling it tight. Learned from your Mac after a week.");
+  if (th?.swapBudget) fact(memFacts, "Overflow budget", bytes(th.swapBudget), "Swap Anti-Freeze allows before calling it tight. Learned from your Mac after a week.");
   if (th?.diskReserve) fact(memFacts, "Disk kept free", bytes(th.diskReserve), "Below this, overflow has no room to grow");
   const hr = st.headroom;
   const known = st.runway.memKnown;
@@ -369,9 +369,9 @@ const diskScanned = h("p", { class: "caption" });
 const scanBtn = h("button", { class: "btn primary", type: "button", on: { click: () => loadDisk(true) } }, "Measure disk use");
 disk.append(card(null,
   h("div", { class: "card-head" }, h("h2", null, "Where your disk went"), scanBtn),
-  h("p", { class: "lead" }, "Headroom looks only at Downloads, app caches, the Trash and developer leftovers, and only when you ask."),
+  h("p", { class: "lead" }, "Anti-Freeze looks only at Downloads, app caches, the Trash and developer leftovers, and only when you ask."),
   diskScanned, diskList,
-  h("p", { class: "footnote" }, "Headroom never deletes files. It moves what you pick to the Trash, so you can put it back.")));
+  h("p", { class: "footnote" }, "Anti-Freeze never deletes files. It moves what you pick to the Trash, so you can put it back.")));
 
 let diskBusy = false;
 async function loadDisk(scan: boolean) {
@@ -397,7 +397,7 @@ function renderDisk(r: DiskReport) {
   scanBtn.textContent = r.scanned ? "Measure again" : "Measure disk use";
   diskScanned.textContent = r.scanned ? `Measured ${dateTime(r.scanned)}.` : "";
   if (!r.scanned) {
-    diskList.append(h("p", { class: "empty" }, "Not measured yet. macOS may ask once to let Headroom read your Downloads folder."));
+    diskList.append(h("p", { class: "empty" }, "Not measured yet. macOS may ask once to let Anti-Freeze read your Downloads folder."));
     return;
   }
   for (const it of r.items ?? []) diskList.append(diskRow(it));
@@ -507,10 +507,10 @@ const hist = page("history", "History");
 const epList = h("div", { class: "episodes" });
 const epSummary = h("p", { class: "lead" });
 const actBody = h("tbody");
-const actEmpty = h("p", { class: "empty", hidden: true }, "Nothing yet. When Headroom quits an app or moves files to the Trash for you, it's listed here.");
+const actEmpty = h("p", { class: "empty", hidden: true }, "Nothing yet. When Anti-Freeze quits an app or moves files to the Trash for you, it's listed here.");
 hist.append(
   card("Slowdowns, last 30 days", epSummary, epList),
-  card("What Headroom did", actEmpty, h("table", { class: "apps-table compact" },
+  card("What Anti-Freeze did", actEmpty, h("table", { class: "apps-table compact" },
     h("thead", null, h("tr", null, ...["When", "Action", "What", "Freed"].map((c, i) => h("th", { scope: "col", class: i === 3 ? "col-num" : "" }, c)))),
     actBody)),
 );
@@ -598,7 +598,7 @@ function renderSettings() {
   clear(setForm);
   add(setForm,
     h("h2", null, "General"),
-    toggle("startAtLogin", "Start at login", "Headroom opens quietly in the menu bar when you log in."),
+    toggle("startAtLogin", "Start at login", "Anti-Freeze opens quietly in the menu bar when you log in."),
     loginNote(),
     choice("iconStyle", "Menu bar icon", "Fill shows how full memory is. Simple only changes when things get tight.", [["fill", "Fill"], ["simple", "Simple"]]),
     h("h2", null, "Alerts"),
@@ -615,11 +615,11 @@ function renderSettings() {
       h("div", { class: "set-text" }, h("span", { class: "lbl" }, "Export history"), h("p", { class: "caption" }, "Saves your history as a CSV file you choose where to keep.")),
       h("button", { class: "btn secondary", type: "button", on: { click: exportHistory } }, "Export history…")),
     deleteRow(),
-    h("h2", null, "Headroom"),
+    h("h2", null, "Anti-Freeze"),
     h("div", { class: "set-row" },
-      h("div", { class: "set-text" }, h("span", { class: "lbl" }, "Quit Headroom"),
-        h("p", { class: "caption" }, "Stops watching until you open Headroom again. You can also right-click the menu bar icon.")),
-      h("button", { class: "btn secondary", type: "button", on: { click: () => api.quitHeadroom().catch(fail) } }, "Quit Headroom")),
+      h("div", { class: "set-text" }, h("span", { class: "lbl" }, "Quit Anti-Freeze"),
+        h("p", { class: "caption" }, "Stops watching until you open Anti-Freeze again. You can also right-click the menu bar icon.")),
+      h("button", { class: "btn secondary", type: "button", on: { click: () => api.quitAntiFreeze().catch(fail) } }, "Quit Anti-Freeze")),
   );
   if (focusedId) document.getElementById(focusedId)?.focus();
   loadNotifyStatus();
@@ -629,11 +629,11 @@ function loginNote(): HTMLElement | null {
   if (!settings || machine?.demo) return null;
   if (settings.loginNeedsApproval) {
     return h("div", { class: "note-box" },
-      h("p", null, "macOS is waiting for you to allow Headroom in Login Items."),
+      h("p", null, "macOS is waiting for you to allow Anti-Freeze in Login Items."),
       h("button", { class: "btn secondary small", type: "button", on: { click: () => api.openLoginItemsSettings().catch(fail) } }, "Open System Settings"));
   }
   if (settings.loginAvailable === false) {
-    return h("div", { class: "note-box" }, h("p", null, "Start at login works when Headroom runs from the Applications folder."));
+    return h("div", { class: "note-box" }, h("p", null, "Start at login works when Anti-Freeze runs from the Applications folder."));
   }
   return null;
 }
@@ -686,11 +686,11 @@ async function loadNotifyStatus() {
     const n: NotifyStatus = await api.notifyStatus();
     clear(notifyNote);
     if (!n.available) {
-      notifyNote.append(h("p", null, "Notifications work when Headroom runs from the Applications folder."));
+      notifyNote.append(h("p", null, "Notifications work when Anti-Freeze runs from the Applications folder."));
       notifyNote.hidden = false;
     } else if (!n.authorized) {
       notifyNote.append(
-        h("p", null, "Notifications are turned off for Headroom in System Settings."),
+        h("p", null, "Notifications are turned off for Anti-Freeze in System Settings."),
         h("button", { class: "btn secondary small", type: "button", on: { click: () => api.openNotificationSettings().catch(fail) } }, "Open System Settings"));
       notifyNote.hidden = false;
     } else {

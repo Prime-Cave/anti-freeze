@@ -1,6 +1,6 @@
-# Headroom build. Requires: Go 1.26+, Node 20+, Xcode command line tools.
+# Anti-Freeze build. Requires: Go 1.26+, Node 20+, Xcode command line tools.
 SHELL := /bin/bash
-APP_NAME   := Headroom
+APP_NAME   := Anti-Freeze
 VERSION    ?= $(shell git describe --tags --always --dirty 2>/dev/null | sed 's/^v//' || echo 0.0.0)
 PLIST_VER  := $(shell echo "$(VERSION)" | grep -Eo '^[0-9]+(\.[0-9]+){1,2}' || echo 0.1.0)
 OUT        := build/out
@@ -31,24 +31,24 @@ frontend: frontend/node_modules
 	@touch frontend/dist/.gitkeep
 
 build: frontend
-	go build $(GO_FLAGS) -o $(OUT)/headroom ./cmd/headroom
+	go build $(GO_FLAGS) -o $(OUT)/anti-freeze ./cmd/anti-freeze
 
-$(OUT)/headroom-arm64: frontend
-	GOARCH=arm64 go build $(GO_FLAGS) -o $@ ./cmd/headroom
+$(OUT)/anti-freeze-arm64: frontend
+	GOARCH=arm64 go build $(GO_FLAGS) -o $@ ./cmd/anti-freeze
 
-$(OUT)/headroom-amd64: frontend
+$(OUT)/anti-freeze-amd64: frontend
 	GOARCH=amd64 CGO_CFLAGS="$(CGO_CFLAGS) -arch x86_64" CGO_LDFLAGS="$(CGO_LDFLAGS) -arch x86_64" \
-		go build $(GO_FLAGS) -o $@ ./cmd/headroom
+		go build $(GO_FLAGS) -o $@ ./cmd/anti-freeze
 
 # Universal (arm64 + x86_64) app bundle, ad-hoc signed.
-app: $(OUT)/headroom-arm64 $(OUT)/headroom-amd64
+app: $(OUT)/anti-freeze-arm64 $(OUT)/anti-freeze-amd64
 	rm -rf $(APP)
 	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
-	lipo -create -output $(APP)/Contents/MacOS/$(APP_NAME) $(OUT)/headroom-arm64 $(OUT)/headroom-amd64
+	lipo -create -output $(APP)/Contents/MacOS/$(APP_NAME) $(OUT)/anti-freeze-arm64 $(OUT)/anti-freeze-amd64
 	sed "s/__VERSION__/$(PLIST_VER)/g" build/darwin/Info.plist > $(APP)/Contents/Info.plist
 	go run ./scripts/mkicon -out $(APP)/Contents/Resources/icons.icns
 	codesign --force --options runtime $(if $(filter -,$(SIGN_IDENTITY)),--timestamp=none,--timestamp) \
-		--entitlements build/darwin/Headroom.entitlements -s "$(SIGN_IDENTITY)" $(APP)
+		--entitlements build/darwin/Anti-Freeze.entitlements -s "$(SIGN_IDENTITY)" $(APP)
 	codesign --verify --strict $(APP)
 	@lipo -info $(APP)/Contents/MacOS/$(APP_NAME)
 
@@ -60,7 +60,7 @@ run: app
 	open $(APP)
 
 sample: build
-	$(OUT)/headroom sample
+	$(OUT)/anti-freeze sample
 
 test:
 	go test ./...
@@ -69,7 +69,7 @@ race:
 	go test -race ./...
 
 # Launches and quits a throwaway helper app through the real AppKit path.
-# HEADROOM_TEST_TRASH=1 also moves one temp file to your Trash.
+# ANTIFREEZE_TEST_TRASH=1 also moves one temp file to your Trash.
 integration:
 	go test -tags integration -v ./internal/macos/
 

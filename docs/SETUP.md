@@ -4,15 +4,15 @@ Two paths: **install the app** (no tools needed) or **build it from source**.
 
 ## A. Install the app
 
-1. Download `Headroom.dmg` from the [latest release](https://github.com/Prime-Cave/headroom/releases/latest).
-2. Double-click the DMG and drag **Headroom** onto **Applications**. Eject the DMG.
-3. Open **Headroom** from Applications. macOS says it can't verify the developer: click **Done**.
-4. Open **System Settings › Privacy & Security**, scroll down, click **Open Anyway** next to the Headroom message, and confirm with your password or Touch ID.
+1. Download `Anti-Freeze.dmg` from the [latest release](https://github.com/Prime-Cave/anti-freeze/releases/latest).
+2. Double-click the DMG and drag **Anti-Freeze** onto **Applications**. Eject the DMG.
+3. Open **Anti-Freeze** from Applications. macOS says it can't verify the developer: click **Done**.
+4. Open **System Settings › Privacy & Security**, scroll down, click **Open Anyway** next to the Anti-Freeze message, and confirm with your password or Touch ID.
    (macOS 13 and 14 also allow right-click › **Open** › **Open**.)
-5. Headroom appears in the menu bar (top right). The first time it:
+5. Anti-Freeze appears in the menu bar (top right). The first time it:
    * asks to send notifications: click **Allow** to be warned before slowdowns;
    * adds itself to your login items, so it starts when you log in.
-6. Click the icon for the dropdown. Right-click it for **Open dashboard**, **Settings** and **Quit Headroom**.
+6. Click the icon for the dropdown. Right-click it for **Open dashboard**, **Settings** and **Quit Anti-Freeze**.
 
 To turn off start at login or notifications: right-click the icon › **Settings**.
 
@@ -44,11 +44,11 @@ xcode-select -p
 ### 2. Get the code
 
 ```bash
-git clone https://github.com/Prime-Cave/headroom.git
+git clone https://github.com/Prime-Cave/anti-freeze.git
 ```
 
 ```bash
-cd headroom
+cd anti-freeze
 ```
 
 ### 3. Build the app
@@ -57,14 +57,14 @@ cd headroom
 make app
 ```
 
-This installs the frontend packages the first time (`npm ci`), builds the interface, compiles the Apple Silicon and Intel versions, joins them into one universal app, and ad-hoc signs it. Result: `build/out/Headroom.app`.
+This installs the frontend packages the first time (`npm ci`), builds the interface, compiles the Apple Silicon and Intel versions, joins them into one universal app, and ad-hoc signs it. Result: `build/out/Anti-Freeze.app`.
 
 ### 4. Run it
 
 On synthetic demo data (reads nothing from your Mac, never quits or moves anything):
 
 ```bash
-HEADROOM_DEMO=tight build/out/Headroom.app/Contents/MacOS/Headroom
+ANTIFREEZE_DEMO=tight build/out/Anti-Freeze.app/Contents/MacOS/Anti-Freeze
 ```
 
 Other demo stages: `ok`, `critical`, `recover`. Press Ctrl-C in the terminal to stop it.
@@ -72,7 +72,7 @@ Other demo stages: `ok`, `critical`, `recover`. Press Ctrl-C in the terminal to 
 For real, watching your Mac:
 
 ```bash
-open build/out/Headroom.app
+open build/out/Anti-Freeze.app
 ```
 
 A copy run from `build/out` never adds itself to your login items; only a copy in Applications does that on first launch.
@@ -83,7 +83,7 @@ A copy run from `build/out` never adds itself to your login items; only a copy i
 make dmg
 ```
 
-Result: `build/out/Headroom.dmg`. To install your own build, open it and drag Headroom to Applications.
+Result: `build/out/Anti-Freeze.dmg`. To install your own build, open it and drag Anti-Freeze to Applications.
 
 ### 6. Test and check (for changes)
 
@@ -143,14 +143,14 @@ Open `http://localhost:5173/?state=tight` (also `ok`, `critical`, `loading`, `na
 |---|---|
 | `make: golangci-lint: command not found` | `brew install golangci-lint` |
 | `xcrun: error: invalid active developer path` | `xcode-select --install` |
-| "Headroom can't be opened" / "can't verify the developer" | Use **Open Anyway** in System Settings › Privacy & Security (step A4) |
-| "Headroom is damaged and can't be opened" | The download's quarantine flag tripped Gatekeeper. Run `xattr -dr com.apple.quarantine /Applications/Headroom.app`, then open it again |
-| Start at login says it needs approval | System Settings › General › Login Items › allow Headroom |
-| No notifications | System Settings › Notifications › Headroom › Allow notifications |
-| Check or change start at login from Terminal | `/Applications/Headroom.app/Contents/MacOS/Headroom --login-item status` (also `on`, `off`) |
+| "Anti-Freeze can't be opened" / "can't verify the developer" | Use **Open Anyway** in System Settings › Privacy & Security (step A4) |
+| "Anti-Freeze is damaged and can't be opened" | The download's quarantine flag tripped Gatekeeper. Run `xattr -dr com.apple.quarantine /Applications/Anti-Freeze.app`, then open it again |
+| Start at login says it needs approval | System Settings › General › Login Items › allow Anti-Freeze |
+| No notifications | System Settings › Notifications › Anti-Freeze › Allow notifications |
+| Check or change start at login from Terminal | `/Applications/Anti-Freeze.app/Contents/MacOS/Anti-Freeze --login-item status` (also `on`, `off`) |
 
 ## Uninstall
 
-1. Right-click the menu bar icon › **Quit Headroom**.
-2. Drag Headroom from Applications to the Trash.
-3. Delete `~/Library/Application Support/Headroom` (your history).
+1. Right-click the menu bar icon › **Quit Anti-Freeze**.
+2. Drag Anti-Freeze from Applications to the Trash.
+3. Delete `~/Library/Application Support/Anti-Freeze` (your history).

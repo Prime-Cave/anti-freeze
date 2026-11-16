@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/machine"
+	"github.com/Prime-Cave/anti-freeze/internal/machine"
 )
 
 // EpisodeApp is an app's footprint and growth when an episode began.
@@ -165,7 +165,7 @@ const LearnMinHistory = 7 * 24 * time.Hour
 
 // Learn adjusts thresholds to where this Mac actually struggled (section
 // 4.6): the swap level and disk free at which past episodes began. The
-// defaults are a floor — learning only ever makes Headroom more cautious.
+// defaults are a floor — learning only ever makes Anti-Freeze more cautious.
 func Learn(def machine.Thresholds, eps []Episode, history time.Duration) machine.Thresholds {
 	if history < LearnMinHistory || len(eps) < 2 {
 		return def

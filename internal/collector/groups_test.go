@@ -16,14 +16,14 @@ func synthTable() ProcessTable {
 		{PID: 150, UID: 88, Name: "WindowServer", Path: "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"},
 		{PID: 200, UID: 501, Name: "Finder", Path: "/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder", Footprint: GB / 4, Accessible: true},
 		{PID: 300, UID: 501, Name: "node", Path: "/usr/local/bin/node", Footprint: GB, Accessible: true},
-		{PID: 900, UID: 501, Name: "Headroom", Path: "/Applications/Headroom.app/Contents/MacOS/Headroom", Footprint: 50 << 20, Accessible: true},
+		{PID: 900, UID: 501, Name: "Anti-Freeze", Path: "/Applications/Anti-Freeze.app/Contents/MacOS/Anti-Freeze", Footprint: 50 << 20, Accessible: true},
 		{PID: 400, UID: 502, Name: "Notes", Path: "/Applications/Notes.app/Contents/MacOS/Notes", Footprint: GB, Accessible: false},
 		{PID: 500, UID: 501, Name: "com.apple.Virtua", Path: "/System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine", Footprint: GB, Accessible: true},
 	}
 	t.Apps = []RunningApp{
 		{PID: 100, Name: "Google Chrome", BundleID: "com.google.Chrome", BundlePath: chrome, Regular: true},
 		{PID: 200, Name: "Finder", BundleID: "com.apple.finder", BundlePath: "/System/Library/CoreServices/Finder.app", Regular: true},
-		{PID: 900, Name: "Headroom", BundlePath: "/Applications/Headroom.app"},
+		{PID: 900, Name: "Anti-Freeze", BundlePath: "/Applications/Anti-Freeze.app"},
 	}
 	return t
 }
@@ -67,7 +67,7 @@ func TestGroupProtectedList(t *testing.T) {
 	gs := Group(synthTable())
 	want := map[string]bool{
 		"launchd": true, "WindowServer": true, "Finder": true, "node": true,
-		"Headroom": true, "Notes": true, "com.apple.Virtualization.VirtualMachine": true,
+		"Anti-Freeze": true, "Notes": true, "com.apple.Virtualization.VirtualMachine": true,
 		"Google Chrome": false,
 	}
 	for _, g := range gs {

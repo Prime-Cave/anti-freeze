@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/analyzer"
-	"github.com/Prime-Cave/headroom/internal/tray"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/tray"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -66,9 +66,9 @@ func (u *wailsUI) forget(w *application.WebviewWindow) {
 }
 
 var stateLabels = map[analyzer.State]string{
-	analyzer.OK:       "Headroom: Plenty of room",
-	analyzer.Tight:    "Headroom: Getting tight",
-	analyzer.Critical: "Headroom: Slowdown likely",
+	analyzer.OK:       "Anti-Freeze: Plenty of room",
+	analyzer.Tight:    "Anti-Freeze: Getting tight",
+	analyzer.Critical: "Anti-Freeze: Slowdown likely",
 }
 
 // SetTrayIcon redraws the menu bar icon when the state or fill changes, and at

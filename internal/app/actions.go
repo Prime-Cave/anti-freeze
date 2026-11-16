@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/actions"
-	"github.com/Prime-Cave/headroom/internal/analyzer"
-	"github.com/Prime-Cave/headroom/internal/notify"
-	"github.com/Prime-Cave/headroom/internal/store"
+	"github.com/Prime-Cave/anti-freeze/internal/actions"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/notify"
+	"github.com/Prime-Cave/anti-freeze/internal/store"
 )
 
 // Notifier delivers notifications (UNUserNotificationCenter in the app).
@@ -95,7 +95,7 @@ func (s *Service) OpenSafetyCheck(appKey string) error {
 		return errInvalid("That app isn't running any more.")
 	}
 	if g.Protected {
-		return errInvalid(g.Name + " is protected, so Headroom won't quit it.")
+		return errInvalid(g.Name + " is protected, so Anti-Freeze won't quit it.")
 	}
 	s.mu.Lock()
 	s.pendingSafety = appKey
@@ -208,7 +208,7 @@ func (s *Service) OpenTrash() { s.act.OpenTrash() }
 // ---- app icons --------------------------------------------------------------------
 
 // AppIcon returns a PNG data URL for a running app's icon. Only bundles of
-// apps Headroom currently sees are accepted.
+// apps Anti-Freeze currently sees are accepted.
 func (s *Service) AppIcon(bundlePath string) string {
 	if s.cfg.AppIcon == nil || !strings.HasSuffix(bundlePath, ".app") {
 		return ""
@@ -251,7 +251,7 @@ func (s *Service) ExportHistory() (string, error) {
 	if s.ui == nil {
 		return "", errInvalid("Open the dashboard to export history.")
 	}
-	name := "Headroom history " + time.Now().Format("2006-01-02") + ".csv"
+	name := "Anti-Freeze history " + time.Now().Format("2006-01-02") + ".csv"
 	path, err := s.ui.SaveFileDialog(name)
 	if err != nil || path == "" {
 		return "", nil // cancelled
@@ -285,7 +285,7 @@ func (s *Service) DeleteHistory(confirmation string) error {
 		if errors.Is(err, context.Canceled) {
 			return nil
 		}
-		return errInvalid("Couldn't delete the history file. Quit Headroom and remove ~/Library/Application Support/Headroom.")
+		return errInvalid("Couldn't delete the history file. Quit Anti-Freeze and remove ~/Library/Application Support/Anti-Freeze.")
 	}
 	if s.ui != nil {
 		s.ui.Emit("history-changed", nil)
@@ -295,7 +295,7 @@ func (s *Service) DeleteHistory(confirmation string) error {
 
 // ---- notification permission ------------------------------------------------------
 
-// NotificationStatus reports whether macOS lets Headroom notify.
+// NotificationStatus reports whether macOS lets Anti-Freeze notify.
 func (s *Service) NotificationStatus() NotifyStatus {
 	nt := s.getNotifier()
 	if nt == nil {
@@ -316,19 +316,19 @@ func (s *Service) RequestNotifications() NotifyStatus {
 	return s.NotificationStatus()
 }
 
-// LoginItem is Headroom's login item (SMAppService.mainApp in the app).
+// LoginItem is Anti-Freeze's login item (SMAppService.mainApp in the app).
 type LoginItem interface {
 	// Status reports whether the item is on, waiting for approval in
 	// System Settings, and whether login items are available at all
 	// (only from an .app bundle).
 	Status() (on, needsApproval, available bool)
 	Set(on bool) error
-	// Installed reports whether Headroom runs from an Applications folder.
+	// Installed reports whether Anti-Freeze runs from an Applications folder.
 	// Only an installed copy turns itself on at first launch.
 	Installed() bool
 }
 
-// SetupLoginItemOnce turns start at login on the first time Headroom runs
+// SetupLoginItemOnce turns start at login on the first time Anti-Freeze runs
 // from an Applications folder (the default the brief asks for). A copy
 // opened from the DMG or a build folder never registers itself. After that, the user's
 // choice in Settings or in System Settings is left alone.
@@ -357,7 +357,7 @@ func (s *Service) SetupLoginItemOnce() {
 }
 
 // AskNotificationsOnce shows the macOS permission prompt the first time
-// Headroom runs (never again: after that, Settings links to System Settings).
+// Anti-Freeze runs (never again: after that, Settings links to System Settings).
 func (s *Service) AskNotificationsOnce() {
 	if s.cfg.Demo || s.getNotifier() == nil || !s.Settings().Notifications {
 		return
@@ -369,8 +369,8 @@ func (s *Service) AskNotificationsOnce() {
 	s.RequestNotifications()
 }
 
-// QuitHeadroom quits Headroom itself (Settings › Quit Headroom).
-func (s *Service) QuitHeadroom() {
+// QuitAntiFreeze quits Anti-Freeze itself (Settings › Quit Anti-Freeze).
+func (s *Service) QuitAntiFreeze() {
 	if s.ui != nil {
 		s.ui.Quit()
 	}

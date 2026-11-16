@@ -6,7 +6,7 @@ import (
 )
 
 // Demo replays the synthetic slowdown scenario in real time, starting at a
-// chosen stage. It powers HEADROOM_DEMO (for screenshots and trying the UI
+// chosen stage. It powers ANTIFREEZE_DEMO (for screenshots and trying the UI
 // without stressing a real Mac). It never reads real processes.
 type Demo struct {
 	mu      sync.Mutex

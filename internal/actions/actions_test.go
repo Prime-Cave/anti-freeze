@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Prime-Cave/headroom/internal/analyzer"
-	"github.com/Prime-Cave/headroom/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
 )
 
 // fakeSys is a fake process table and a fake Trash. It records every call
@@ -178,7 +178,7 @@ func TestProtectedNeverQuit(t *testing.T) {
 		t.Fatal(err)
 	}
 	g := src.groups["editor"]
-	g.Protected, g.Reason = true, "Headroom itself"
+	g.Protected, g.Reason = true, "Anti-Freeze itself"
 	src.groups["editor"] = g
 	if _, err := m.ConfirmQuit(sc.Token); err == nil {
 		t.Fatal("quit an app that became protected")

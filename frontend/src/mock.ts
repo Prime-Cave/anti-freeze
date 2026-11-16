@@ -131,7 +131,7 @@ const handlers: Record<string, (...a: any[]) => unknown> = {
   DiskReport: (): DiskReport => ({ scanned: new Date().toISOString(), total: 14.9 * GB, items: [
     { name: "Downloads", path: "~/Downloads", size: 6.2 * GB, known: true, kind: "downloads", canReveal: true, canReview: true },
     { name: "App caches", path: "~/Library/Caches", size: 2.9 * GB, known: true, kind: "caches", canReveal: true, canReview: false },
-    { name: "Trash", path: "~/.Trash", size: 0, known: false, note: "Needs Full Disk Access to measure. Headroom doesn't ask for it.", kind: "trash", canReveal: false, canReview: false },
+    { name: "Trash", path: "~/.Trash", size: 0, known: false, note: "Needs Full Disk Access to measure. Anti-Freeze doesn't ask for it.", kind: "trash", canReveal: false, canReview: false },
     { name: "Developer leftovers", path: "~/Library/Developer", size: 5.8 * GB, known: true, note: "Xcode DerivedData and simulators", kind: "developer", canReveal: true, canReview: true },
   ] }),
   LargeFiles: () => [
@@ -142,7 +142,7 @@ const handlers: Record<string, (...a: any[]) => unknown> = {
   PlanTrash: (paths: string[]) => ({ token: "t", names: paths.map((p) => p.split("/").pop()), total: 5.3 * GB, count: paths.length }),
   ConfirmTrash: () => ({ ok: true, message: "Moved 2 items to the Trash. 5.3 GB freed.", freed: 5.3 * GB }),
   NotificationStatus: () => ({ authorized: params.get("notify") !== "0", determined: true, available: true }),
-  ExportHistory: () => "/Users/demo/Documents/Headroom history.csv",
+  ExportHistory: () => "/Users/demo/Documents/Anti-Freeze history.csv",
   AppIcon: () => "",
   PendingSafetyCheck: () => appsTight[0].key,
 };

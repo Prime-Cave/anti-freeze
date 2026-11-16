@@ -1,6 +1,6 @@
 //go:build darwin
 
-// Package macos wraps the few AppKit calls Headroom's actions need. Every
+// Package macos wraps the few AppKit calls Anti-Freeze's actions need. Every
 // call here is a public API; none of them deletes anything.
 package macos
 

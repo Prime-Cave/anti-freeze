@@ -4,13 +4,13 @@ import (
 	"context"
 	"sync"
 
-	"github.com/Prime-Cave/headroom/internal/macos"
-	"github.com/Prime-Cave/headroom/internal/notify"
+	"github.com/Prime-Cave/anti-freeze/internal/macos"
+	"github.com/Prime-Cave/anti-freeze/internal/notify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/services/notifications"
 )
 
-// notifier sends Headroom's notifications through UNUserNotificationCenter
+// notifier sends Anti-Freeze's notifications through UNUserNotificationCenter
 // (the Wails notifications service). The service is started directly rather
 // than registered as a bound service, so the frontend can't send
 // notifications itself.
@@ -73,7 +73,7 @@ func (n *notifier) Send(note notify.Note) error {
 	return n.ns.SendNotificationWithActions(notifications.NotificationOptions{
 		ID: note.ID, Title: note.Title, Body: note.Body, CategoryID: note.Category,
 		Data:              map[string]interface{}{"appKey": note.AppKey},
-		ThreadID:          "headroom",
+		ThreadID:          "anti-freeze",
 		InterruptionLevel: "active", // respects Focus; never "time sensitive"
 	})
 }

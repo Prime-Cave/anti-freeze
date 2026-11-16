@@ -3,8 +3,8 @@
 // Run with: go test -tags integration ./internal/macos/
 //
 // Builds a throwaway helper app in a temp folder, launches it, and quits it
-// through the same AppKit path Headroom uses. It never touches any other app.
-// The Trash check is opt-in (HEADROOM_TEST_TRASH=1) because it leaves one
+// through the same AppKit path Anti-Freeze uses. It never touches any other app.
+// The Trash check is opt-in (ANTIFREEZE_TEST_TRASH=1) because it leaves one
 // small temp file in your Trash.
 package macos
 
@@ -30,7 +30,7 @@ int main(void) {
 const helperPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>CFBundleIdentifier</key><string>io.github.prime-cave.headroom.testhelper</string>
+<key>CFBundleIdentifier</key><string>io.github.prime-cave.anti-freeze.testhelper</string>
 <key>CFBundleExecutable</key><string>QuitHelper</string>
 <key>CFBundleName</key><string>QuitHelper</string>
 <key>LSUIElement</key><true/>
@@ -90,17 +90,17 @@ func TestTerminateThrowawayApp(t *testing.T) {
 }
 
 func TestTrashTempFile(t *testing.T) {
-	if os.Getenv("HEADROOM_TEST_TRASH") != "1" {
-		t.Skip("set HEADROOM_TEST_TRASH=1 to move one temp file to your Trash")
+	if os.Getenv("ANTIFREEZE_TEST_TRASH") != "1" {
+		t.Skip("set ANTIFREEZE_TEST_TRASH=1 to move one temp file to your Trash")
 	}
 	home, _ := os.UserHomeDir()
-	dir, err := os.MkdirTemp(home, ".headroom-trash-check-")
+	dir, err := os.MkdirTemp(home, ".anti-freeze-trash-check-")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(dir)
-	f := filepath.Join(dir, "headroom-trash-check.txt")
-	if err := os.WriteFile(f, []byte("Headroom test file. Safe to delete."), 0o600); err != nil {
+	f := filepath.Join(dir, "anti-freeze-trash-check.txt")
+	if err := os.WriteFile(f, []byte("Anti-Freeze test file. Safe to delete."), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := (System{}).Trash(f); err != nil {

@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/Prime-Cave/headroom/internal/actions"
-	"github.com/Prime-Cave/headroom/internal/analyzer"
-	"github.com/Prime-Cave/headroom/internal/store"
+	"github.com/Prime-Cave/anti-freeze/internal/actions"
+	"github.com/Prime-Cave/anti-freeze/internal/analyzer"
+	"github.com/Prime-Cave/anti-freeze/internal/store"
 )
 
 // API is the only type bound to the frontend. Every exported method here is
@@ -59,7 +59,7 @@ func (a *API) NotificationStatus() NotifyStatus   { return a.s.NotificationStatu
 func (a *API) RequestNotifications() NotifyStatus { return a.s.RequestNotifications() }
 func (a *API) OpenNotificationSettings()          { a.s.OpenNotificationSettings() }
 func (a *API) OpenLoginItemsSettings()            { a.s.OpenLoginItemsSettings() }
-func (a *API) QuitHeadroom()                      { a.s.QuitHeadroom() }
+func (a *API) QuitAntiFreeze()                      { a.s.QuitAntiFreeze() }
 
 // SelftestReport receives the rendered page text during `--selftest` runs and
 // prints it. It does nothing in normal use.

@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// Headroom never uses the network (section 6). These checks run on the
+// Anti-Freeze never uses the network (section 6). These checks run on the
 // import graph:
 //
 //  1. No package in this module imports a networking package or os/exec
@@ -18,7 +18,7 @@ import (
 //     connection string and a UUID package that imports net; neither opens
 //     a connection.)
 //
-// The Wails layer in cmd/headroom serves the UI through net/http handler
+// The Wails layer in cmd/anti-freeze serves the UI through net/http handler
 // types over the in-process wails:// scheme, never a port; that is checked
 // at runtime instead (scripts/measure.sh reports open sockets).
 
@@ -55,7 +55,7 @@ func list(t *testing.T, patterns ...string) []pkg {
 	return pkgs
 }
 
-const module = "github.com/Prime-Cave/headroom"
+const module = "github.com/Prime-Cave/anti-freeze"
 
 var forbiddenDirect = map[string]bool{
 	"net": true, "net/http": true, "net/rpc": true, "net/smtp": true, "crypto/tls": true,

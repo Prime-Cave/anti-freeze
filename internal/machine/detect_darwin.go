@@ -37,7 +37,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/Prime-Cave/headroom/internal/collector"
+	"github.com/Prime-Cave/anti-freeze/internal/collector"
 )
 
 // Detect reads the current machine's profile from public APIs.

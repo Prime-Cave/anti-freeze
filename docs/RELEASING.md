@@ -3,11 +3,11 @@
 ## Unsigned release (the default)
 
 1. Update the version in a tag: `git tag v0.2.0 && git push origin v0.2.0`.
-2. The **Release** workflow builds the universal app on `macos-latest`, packs `Headroom.dmg` (ad-hoc signed) and attaches it with a SHA-256 checksum to a GitHub release for the tag.
+2. The **Release** workflow builds the universal app on `macos-latest`, packs `Anti-Freeze.dmg` (ad-hoc signed) and attaches it with a SHA-256 checksum to a GitHub release for the tag.
 
 People opening an unsigned app the first time need to approve it once: see "Install" in the README.
 
-To build the same thing locally: `make dmg` → `build/out/Headroom.dmg`.
+To build the same thing locally: `make dmg` → `build/out/Anti-Freeze.dmg`.
 
 ## Optional: Developer ID signing and notarization
 
@@ -19,7 +19,7 @@ Signing removes the first-launch warning. It needs a paid Apple Developer accoun
 2. Store notarization credentials in the keychain under a profile name of your choice, using an app-specific password from appleid.apple.com:
 
    ```bash
-   xcrun notarytool store-credentials headroom-notary
+   xcrun notarytool store-credentials anti-freeze-notary
    ```
 
    The tool prompts for your Apple ID, team and password, and keeps them in the keychain. Don't pass them on the command line, so they stay out of your shell history.
@@ -29,9 +29,9 @@ Signing removes the first-launch warning. It needs a paid Apple Developer accoun
 ```bash
 export SIGN_IDENTITY="Developer ID Application"   # matched against your keychain
 make dmg
-xcrun notarytool submit build/out/Headroom.dmg --keychain-profile headroom-notary --wait
-xcrun stapler staple build/out/Headroom.dmg
-spctl -a -t open --context context:primary-signature -v build/out/Headroom.dmg
+xcrun notarytool submit build/out/Anti-Freeze.dmg --keychain-profile anti-freeze-notary --wait
+xcrun stapler staple build/out/Anti-Freeze.dmg
+spctl -a -t open --context context:primary-signature -v build/out/Anti-Freeze.dmg
 ```
 
 `SIGN_IDENTITY` is only read from the environment; the Makefile defaults to ad-hoc (`-`). Upload the stapled DMG to the release in place of the unsigned one.

@@ -8,7 +8,7 @@ import (
 
 // Fake replays a fixed sequence of snapshots and process tables. When the
 // sequence runs out it keeps returning the last entry. Used by tests and by
-// the app's demo mode (HEADROOM_DEMO=1), which never touches real processes.
+// the app's demo mode (ANTIFREEZE_DEMO=1), which never touches real processes.
 type Fake struct {
 	mu     sync.Mutex
 	Snaps  []Snapshot
