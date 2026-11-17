@@ -24,7 +24,7 @@ func (s *Store) ExportCSV(w io.Writer) (int, error) {
 	n := 0
 	for _, t := range []struct{ name, table string }{{"10m", "rollup_10m"}, {"1m", "rollup_1m"}, {"raw", "samples"}} {
 		// #nosec G202 -- t.table comes from the fixed list in this loop.
-		rows, err := s.db.Query(`SELECT ts, mem_total, mem_used, mem_compressed, swap_used, disk_free, pressure, cpu, thermal, headroom, state, COALESCE(top_app, '') FROM ` + t.table + ` ORDER BY ts`)
+		rows, err := s.db.Query(`SELECT ts, mem_total, mem_used, mem_compressed, swap_used, disk_free, pressure, cpu, thermal, spare_room, state, COALESCE(top_app, '') FROM ` + t.table + ` ORDER BY ts`)
 		if err != nil {
 			return n, err
 		}

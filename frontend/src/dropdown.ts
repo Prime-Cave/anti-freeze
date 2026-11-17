@@ -78,7 +78,7 @@ function render(st: Status) {
   header.className = "status " + st.state;
   title.textContent = st.label;
   const memKnown = st.runway.memKnown;
-  bigFigure.textContent = memKnown ? st.headroomText : "—";
+  bigFigure.textContent = memKnown ? st.spareRoomText : "—";
   forecast.textContent = memKnown ? st.forecast.text : NOT_AVAILABLE;
 
   rw.update(st.runway);

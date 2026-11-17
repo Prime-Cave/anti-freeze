@@ -2,7 +2,7 @@
 
 export type StateName = "ok" | "tight" | "critical";
 
-export interface Headroom {
+export interface SpareRoom {
   total: number;
   free: number;
   reclaimable: number;
@@ -65,8 +65,8 @@ export interface Status {
   label: string;
   rawState: StateName;
   causes: string[] | null;
-  headroom: Headroom;
-  headroomText: string;
+  spareRoom: SpareRoom;
+  spareRoomText: string;
   forecast: Forecast;
   runway: Runway;
   cpu: number;
@@ -123,7 +123,7 @@ export interface Point {
   memTotal: number;
   swapUsed: number;
   diskFree: number;
-  headroom: number;
+  spareRoom: number;
   state: number;
   cpu: number;
   topApp: string;

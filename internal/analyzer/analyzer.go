@@ -37,26 +37,26 @@ type Suggestion struct {
 
 // Status is everything the dropdown shows.
 type Status struct {
-	Time         time.Time          `json:"time"`
-	Ready        bool               `json:"ready"` // false until the first samples arrive
-	State        State              `json:"state"`
-	Label        string             `json:"label"`
-	RawState     State              `json:"rawState"`
-	Causes       []Cause            `json:"causes"`
-	Headroom     Headroom           `json:"headroom"`
-	HeadroomText string             `json:"headroomText"`
-	Forecast     Forecast           `json:"forecast"`
-	SwapTrend    Trend              `json:"swapTrend"`
-	DiskTrend    Trend              `json:"diskTrend"`
-	Runway       Runway             `json:"runway"`
-	CPU          float64            `json:"cpu"`
-	Thermal      string             `json:"thermal"`
-	Pressure     string             `json:"pressure"`
-	TopApps      []AppRow           `json:"topApps"`
-	Suggestions  []Suggestion       `json:"suggestions"`
-	Unavailable  []string           `json:"unavailable,omitempty"`
-	Thresholds   machine.Thresholds `json:"thresholds"`
-	Episode      *Episode           `json:"episode,omitempty"`
+	Time          time.Time          `json:"time"`
+	Ready         bool               `json:"ready"` // false until the first samples arrive
+	State         State              `json:"state"`
+	Label         string             `json:"label"`
+	RawState      State              `json:"rawState"`
+	Causes        []Cause            `json:"causes"`
+	SpareRoom     SpareRoom          `json:"spareRoom"`
+	SpareRoomText string             `json:"spareRoomText"`
+	Forecast      Forecast           `json:"forecast"`
+	SwapTrend     Trend              `json:"swapTrend"`
+	DiskTrend     Trend              `json:"diskTrend"`
+	Runway        Runway             `json:"runway"`
+	CPU           float64            `json:"cpu"`
+	Thermal       string             `json:"thermal"`
+	Pressure      string             `json:"pressure"`
+	TopApps       []AppRow           `json:"topApps"`
+	Suggestions   []Suggestion       `json:"suggestions"`
+	Unavailable   []string           `json:"unavailable,omitempty"`
+	Thresholds    machine.Thresholds `json:"thresholds"`
+	Episode       *Episode           `json:"episode,omitempty"`
 }
 
 // Analyzer holds all rolling state. Safe for concurrent use.
@@ -180,7 +180,7 @@ func (a *Analyzer) AddSystem(s collector.Snapshot) Status {
 	if recent.Slope <= minSlopeBytesPS {
 		swapTrend.Confident = false
 	}
-	hr := ComputeHeadroom(s, th)
+	hr := ComputeSpareRoom(s, th)
 	fc := Predict(swapTrend, diskTrend, hr.Total, s.Disk.Available, th.DiskFloor)
 	raw, causes := Evaluate(Inputs{Snapshot: s, Forecast: fc, SwapSlope: recent, Thresholds: th})
 	state := a.hyst.Update(raw, s.Time)
@@ -190,7 +190,7 @@ func (a *Analyzer) AddSystem(s collector.Snapshot) Status {
 
 	st := Status{
 		Time: s.Time, Ready: true, State: state, Label: state.Label(), RawState: raw, Causes: causes,
-		Headroom: hr, HeadroomText: FormatBytes(hr.Total), Forecast: fc, SwapTrend: swapTrend, DiskTrend: diskTrend,
+		SpareRoom: hr, SpareRoomText: FormatBytes(hr.Total), Forecast: fc, SwapTrend: swapTrend, DiskTrend: diskTrend,
 		CPU: s.CPU.Usage * 100, Thermal: s.Thermal.Label(), Pressure: s.Pressure.String(),
 		Unavailable: s.Unavailable, Thresholds: th,
 	}

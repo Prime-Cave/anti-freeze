@@ -135,6 +135,12 @@ var migrations = []string{
 	   ts INTEGER NOT NULL, kind TEXT NOT NULL, target TEXT, freed INTEGER, detail TEXT);
 	 CREATE INDEX actions_ts ON actions(ts);
 	 CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);`,
+	// 2: the "headroom" metric is now called "spare room"; history is kept
+	`ALTER TABLE samples RENAME COLUMN headroom TO spare_room;
+	 ALTER TABLE rollup_1m RENAME COLUMN headroom TO spare_room;
+	 ALTER TABLE rollup_1m RENAME COLUMN headroom_min TO spare_room_min;
+	 ALTER TABLE rollup_10m RENAME COLUMN headroom TO spare_room;
+	 ALTER TABLE rollup_10m RENAME COLUMN headroom_min TO spare_room_min;`,
 }
 
 // SchemaVersion is the latest migration number.
@@ -178,7 +184,7 @@ type Sample struct {
 	Pressure      int            `json:"pressure"`
 	CPU           float64        `json:"cpu"` // percent
 	Thermal       int            `json:"thermal"`
-	Headroom      uint64         `json:"headroom"`
+	SpareRoom     uint64         `json:"spareRoom"`
 	State         analyzer.State `json:"state"`
 	TopApp        string         `json:"topApp"`
 }
@@ -193,7 +199,7 @@ func SampleFromStatus(st analyzer.Status, pressure, thermal int) Sample {
 	return Sample{
 		Time: st.Time, MemTotal: r.MemTotal, MemUsed: r.InUse + r.Squeezed, MemCompressed: r.Squeezed,
 		SwapUsed: r.Overflow, DiskFree: r.DiskFree, Pressure: pressure, CPU: st.CPU, Thermal: thermal,
-		Headroom: st.Headroom.Total, State: st.State, TopApp: top,
+		SpareRoom: st.SpareRoom.Total, State: st.State, TopApp: top,
 	}
 }
 
@@ -205,10 +211,10 @@ func (s *Store) AddSample(x Sample) error {
 		return errClosed
 	}
 	_, err := s.db.Exec(`INSERT OR REPLACE INTO samples
-	  (ts, mem_total, mem_used, mem_compressed, swap_used, disk_free, pressure, cpu, thermal, headroom, state, top_app)
+	  (ts, mem_total, mem_used, mem_compressed, swap_used, disk_free, pressure, cpu, thermal, spare_room, state, top_app)
 	  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
 		x.Time.UnixMilli(), int64(x.MemTotal), int64(x.MemUsed), int64(x.MemCompressed), int64(x.SwapUsed),
-		int64(x.DiskFree), x.Pressure, x.CPU, x.Thermal, int64(x.Headroom), int(x.State), x.TopApp)
+		int64(x.DiskFree), x.Pressure, x.CPU, x.Thermal, int64(x.SpareRoom), int(x.State), x.TopApp)
 	return err
 }
 
@@ -224,7 +230,7 @@ func (s *Store) AddSamples(xs []Sample) error {
 		return err
 	}
 	stmt, err := tx.Prepare(`INSERT OR REPLACE INTO samples
-	  (ts, mem_total, mem_used, mem_compressed, swap_used, disk_free, pressure, cpu, thermal, headroom, state, top_app)
+	  (ts, mem_total, mem_used, mem_compressed, swap_used, disk_free, pressure, cpu, thermal, spare_room, state, top_app)
 	  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
 	if err != nil {
 		_ = tx.Rollback()
@@ -233,7 +239,7 @@ func (s *Store) AddSamples(xs []Sample) error {
 	defer func() { _ = stmt.Close() }()
 	for _, x := range xs {
 		if _, err := stmt.Exec(x.Time.UnixMilli(), int64(x.MemTotal), int64(x.MemUsed), int64(x.MemCompressed), int64(x.SwapUsed),
-			int64(x.DiskFree), x.Pressure, x.CPU, x.Thermal, int64(x.Headroom), int(x.State), x.TopApp); err != nil {
+			int64(x.DiskFree), x.Pressure, x.CPU, x.Thermal, int64(x.SpareRoom), int(x.State), x.TopApp); err != nil {
 			_ = tx.Rollback()
 			return err
 		}
@@ -251,10 +257,10 @@ var errClosed = errors.New("store: closed")
 const rollupSQL = `
 INSERT OR IGNORE INTO %[2]s
  (ts, n, mem_total, mem_used, mem_used_max, mem_compressed, swap_used, swap_used_max,
-  disk_free, disk_free_min, pressure, cpu, thermal, headroom, headroom_min, state, top_app)
+  disk_free, disk_free_min, pressure, cpu, thermal, spare_room, spare_room_min, state, top_app)
 SELECT b, %[4]s, MAX(mem_total), CAST(AVG(mem_used) AS INTEGER), MAX(%[5]s), CAST(AVG(mem_compressed) AS INTEGER),
        CAST(AVG(swap_used) AS INTEGER), MAX(%[6]s), CAST(AVG(disk_free) AS INTEGER), MIN(%[7]s),
-       MAX(pressure), AVG(cpu), MAX(thermal), CAST(AVG(headroom) AS INTEGER), MIN(%[8]s), MAX(state),
+       MAX(pressure), AVG(cpu), MAX(thermal), CAST(AVG(spare_room) AS INTEGER), MIN(%[8]s), MAX(state),
        (SELECT top_app FROM %[1]s s2 WHERE s2.ts >= b AND s2.ts < b + %[3]d ORDER BY mem_used DESC LIMIT 1)
 FROM (SELECT ts / %[3]d * %[3]d AS b, * FROM %[1]s
       WHERE ts >= (SELECT COALESCE(MAX(ts), 0) FROM %[2]s))
@@ -270,11 +276,11 @@ func (s *Store) Rollup(now time.Time) error {
 		return errClosed
 	}
 	until := now.UnixMilli()
-	q1 := fmt.Sprintf(rollupSQL, "samples", "rollup_1m", 60_000, "COUNT(*)", "mem_used", "swap_used", "disk_free", "headroom")
+	q1 := fmt.Sprintf(rollupSQL, "samples", "rollup_1m", 60_000, "COUNT(*)", "mem_used", "swap_used", "disk_free", "spare_room")
 	if _, err := s.db.Exec(q1, until); err != nil {
 		return fmt.Errorf("rollup 1m: %w", err)
 	}
-	q10 := fmt.Sprintf(rollupSQL, "rollup_1m", "rollup_10m", 600_000, "SUM(n)", "mem_used_max", "swap_used_max", "disk_free_min", "headroom_min")
+	q10 := fmt.Sprintf(rollupSQL, "rollup_1m", "rollup_10m", 600_000, "SUM(n)", "mem_used_max", "swap_used_max", "disk_free_min", "spare_room_min")
 	if _, err := s.db.Exec(q10, until); err != nil {
 		return fmt.Errorf("rollup 10m: %w", err)
 	}
@@ -357,15 +363,15 @@ func (s *Store) sizeLocked() (int64, error) {
 
 // Point is one timeline point.
 type Point struct {
-	Time     time.Time `json:"time"`
-	MemUsed  uint64    `json:"memUsed"` // in use + squeezed
-	MemTotal uint64    `json:"memTotal"`
-	SwapUsed uint64    `json:"swapUsed"`
-	DiskFree uint64    `json:"diskFree"`
-	Headroom uint64    `json:"headroom"`
-	State    int       `json:"state"`
-	CPU      float64   `json:"cpu"`
-	TopApp   string    `json:"topApp"`
+	Time      time.Time `json:"time"`
+	MemUsed   uint64    `json:"memUsed"` // in use + squeezed
+	MemTotal  uint64    `json:"memTotal"`
+	SwapUsed  uint64    `json:"swapUsed"`
+	DiskFree  uint64    `json:"diskFree"`
+	SpareRoom uint64    `json:"spareRoom"`
+	State     int       `json:"state"`
+	CPU       float64   `json:"cpu"`
+	TopApp    string    `json:"topApp"`
 }
 
 // Timeline returns at most maxPoints points between from and to, using the
@@ -387,7 +393,7 @@ func (s *Store) Timeline(from, to time.Time, maxPoints int) ([]Point, error) {
 	bucket := max(span.Milliseconds()/int64(max(maxPoints, 1)), 1)
 	// #nosec G201 -- table is one of two fixed names chosen above; bucket is an integer.
 	q := fmt.Sprintf(`SELECT b, MAX(mem_total), MAX(mem_used), MAX(swap_used), MIN(disk_free),
-	   MIN(headroom), MAX(state), AVG(cpu),
+	   MIN(spare_room), MAX(state), AVG(cpu),
 	   (SELECT top_app FROM %[1]s s2 WHERE s2.ts >= b AND s2.ts < b + %[2]d ORDER BY mem_used DESC LIMIT 1)
 	 FROM (SELECT ts / %[2]d * %[2]d AS b, * FROM %[1]s WHERE ts >= ? AND ts <= ?) GROUP BY b ORDER BY b`, table, bucket)
 	rows, err := s.db.Query(q, from.UnixMilli(), to.UnixMilli())
@@ -405,7 +411,7 @@ func (s *Store) Timeline(from, to time.Time, maxPoints int) ([]Point, error) {
 			return nil, err
 		}
 		out = append(out, Point{Time: time.UnixMilli(ts), MemTotal: uint64(mt), MemUsed: uint64(mu), SwapUsed: uint64(su),
-			DiskFree: uint64(df), Headroom: uint64(hr), State: state, CPU: cpu, TopApp: top.String})
+			DiskFree: uint64(df), SpareRoom: uint64(hr), State: state, CPU: cpu, TopApp: top.String})
 	}
 	return out, rows.Err()
 }

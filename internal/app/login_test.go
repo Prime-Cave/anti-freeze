@@ -15,8 +15,8 @@ type fakeLogin struct {
 }
 
 func (f *fakeLogin) Status() (on, needsApproval, available bool) { return f.on, false, true }
-func (f *fakeLogin) Set(on bool) error                          { f.sets = append(f.sets, on); f.on = on; return nil }
-func (f *fakeLogin) Installed() bool                            { return f.installed }
+func (f *fakeLogin) Set(on bool) error                           { f.sets = append(f.sets, on); f.on = on; return nil }
+func (f *fakeLogin) Installed() bool                             { return f.installed }
 
 func newLoginService(t *testing.T, li LoginItem, demo bool) *Service {
 	t.Helper()

@@ -112,17 +112,17 @@ type Forecast struct {
 	Text      string        `json:"text"`
 }
 
-// Predict combines the swap and disk trends with the current headroom.
+// Predict combines the swap and disk trends with the current spare room.
 //
-// Swap growth eats headroom directly: ETA = headroom / swap slope.
+// Swap growth eats spare room directly: ETA = spare room / swap slope.
 // Disk loss eats the space swap needs: ETA = (disk free − floor) / −disk slope.
 // The sooner of the two wins. Only confident, rising-pressure trends count,
 // and anything beyond an hour reads as "Steady".
-func Predict(swap, disk Trend, headroom, diskFree, diskFloor uint64) Forecast {
+func Predict(swap, disk Trend, spareRoom, diskFree, diskFloor uint64) Forecast {
 	best := time.Duration(math.MaxInt64)
 	cause := ""
 	if swap.Confident && swap.Slope > 0 {
-		eta := time.Duration(float64(headroom) / swap.Slope * float64(time.Second))
+		eta := time.Duration(float64(spareRoom) / swap.Slope * float64(time.Second))
 		if eta < best {
 			best, cause = eta, "swap"
 		}

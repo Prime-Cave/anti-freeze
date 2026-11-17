@@ -279,7 +279,7 @@ type Timeline struct {
 	Points       []store.Point      `json:"points"`
 	Episodes     []analyzer.Episode `json:"episodes"`
 	Summary      string             `json:"summary"`
-	SlowdownLine uint64             `json:"slowdownLine"` // memory + swap budget: past this, headroom is gone
+	SlowdownLine uint64             `json:"slowdownLine"` // memory + swap budget: past this, spare room is gone
 	MemTotal     uint64             `json:"memTotal"`
 	Empty        bool               `json:"empty"`
 }

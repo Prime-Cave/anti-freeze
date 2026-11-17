@@ -5,7 +5,7 @@ import (
 	"github.com/Prime-Cave/anti-freeze/internal/machine"
 )
 
-// Headroom is the "to spare" number and its parts, in bytes.
+// SpareRoom is the "to spare" number and its parts, in bytes.
 //
 //	anti-freeze = free + reclaimable (cached files) + purgeable + safe swap allowance
 //	safe swap allowance = min( SwapBudget − swap used,  disk free − DiskReserve ),  never below 0
@@ -15,7 +15,7 @@ import (
 // how much more overflow the Mac can take comfortably, limited both by how
 // much swap this machine copes with (SwapBudget, half of memory by default,
 // lowered by learning) and by the free disk the swap files need.
-type Headroom struct {
+type SpareRoom struct {
 	Total         uint64 `json:"total"`
 	Free          uint64 `json:"free"`
 	Reclaimable   uint64 `json:"reclaimable"`
@@ -23,10 +23,10 @@ type Headroom struct {
 	SwapAllowance uint64 `json:"swapAllowance"`
 }
 
-// ComputeHeadroom applies the formula. Unavailable inputs count as 0 room
+// ComputeSpareRoom applies the formula. Unavailable inputs count as 0 room
 // (the cautious reading), and the UI separately says what is unavailable.
-func ComputeHeadroom(s collector.Snapshot, th machine.Thresholds) Headroom {
-	var h Headroom
+func ComputeSpareRoom(s collector.Snapshot, th machine.Thresholds) SpareRoom {
+	var h SpareRoom
 	if s.Has("memory") {
 		m := s.Memory
 		spare := m.Spare()

@@ -48,16 +48,16 @@ func replay(a *Analyzer, sc collector.Scenario, fn func(collector.Snapshot, Stat
 	}
 }
 
-// ---- headroom formula -------------------------------------------------------
+// ---- spare room formula -------------------------------------------------------
 
-func TestHeadroomFormula(t *testing.T) {
+func TestSpareRoomFormula(t *testing.T) {
 	th := smallMac.Defaults() // reserve 16 GB, swap budget 4 GB
 	s := collector.Snapshot{
 		Memory: collector.Memory{Total: 8 * GB, Used: 6 * GB, Free: 512 * MB, Purgeable: 256 * MB},
 		Swap:   collector.Swap{Used: 1 * GB},
 		Disk:   collector.Disk{Available: 18 * GB},
 	}
-	h := ComputeHeadroom(s, th)
+	h := ComputeSpareRoom(s, th)
 	// spare = 2 GB = free 512 MB + purgeable 256 MB + reclaimable 1280 MB
 	if h.Free != 512*MB || h.Purgeable != 256*MB || h.Reclaimable != 1280*MB {
 		t.Fatalf("memory parts wrong: %+v", h)
@@ -71,33 +71,33 @@ func TestHeadroomFormula(t *testing.T) {
 	}
 }
 
-func TestHeadroomSwapCappedByBudget(t *testing.T) {
+func TestSpareRoomSwapCappedByBudget(t *testing.T) {
 	th := smallMac.Defaults()
 	s := collector.Snapshot{
 		Memory: collector.Memory{Total: 8 * GB, Used: 8 * GB},
 		Swap:   collector.Swap{Used: 5 * GB}, // past the 4 GB budget
 		Disk:   collector.Disk{Available: 100 * GB},
 	}
-	if h := ComputeHeadroom(s, th); h.Total != 0 {
+	if h := ComputeSpareRoom(s, th); h.Total != 0 {
 		t.Fatalf("no room expected, got %+v", h)
 	}
 }
 
-func TestHeadroomDiskBelowReserveGivesNoSwap(t *testing.T) {
+func TestSpareRoomDiskBelowReserveGivesNoSwap(t *testing.T) {
 	th := smallMac.Defaults()
 	s := collector.Snapshot{
 		Memory: collector.Memory{Total: 8 * GB, Used: 7 * GB, Free: GB},
 		Disk:   collector.Disk{Available: 9 * GB},
 	}
-	if h := ComputeHeadroom(s, th); h.SwapAllowance != 0 || h.Total != GB {
+	if h := ComputeSpareRoom(s, th); h.SwapAllowance != 0 || h.Total != GB {
 		t.Fatalf("got %+v", h)
 	}
 }
 
-func TestHeadroomUnavailableIsCautious(t *testing.T) {
+func TestSpareRoomUnavailableIsCautious(t *testing.T) {
 	th := smallMac.Defaults()
 	s := collector.Snapshot{Unavailable: []string{"memory", "disk"}, Swap: collector.Swap{Used: 0}}
-	if h := ComputeHeadroom(s, th); h.Total != 0 {
+	if h := ComputeSpareRoom(s, th); h.Total != 0 {
 		t.Fatalf("unavailable inputs must not invent room: %+v", h)
 	}
 }

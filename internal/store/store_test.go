@@ -28,7 +28,7 @@ func open(t *testing.T) *Store {
 
 func sample(ts time.Time, used, swap uint64) Sample {
 	return Sample{Time: ts, MemTotal: 8 * GB, MemUsed: used, SwapUsed: swap, DiskFree: 40 * GB,
-		Pressure: 1, CPU: 10, Headroom: 2 * GB, State: analyzer.OK, TopApp: "Browser"}
+		Pressure: 1, CPU: 10, SpareRoom: 2 * GB, State: analyzer.OK, TopApp: "Browser"}
 }
 
 func count(t *testing.T, s *Store, table string) int {
@@ -156,7 +156,7 @@ func TestSizeCap(t *testing.T) {
 	for i := 0; i < 20000; i++ {
 		x := sample(base.Add(time.Duration(i)*2*time.Second), GB, 0)
 		x.TopApp = "An app with a reasonably long name to take up space"
-		_, _ = tx.Exec(`INSERT INTO samples (ts, mem_total, mem_used, swap_used, disk_free, pressure, cpu, thermal, headroom, state, top_app) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+		_, _ = tx.Exec(`INSERT INTO samples (ts, mem_total, mem_used, swap_used, disk_free, pressure, cpu, thermal, spare_room, state, top_app) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
 			x.Time.UnixMilli(), 1, 1, 1, 1, 1, 1.0, 0, 1, 0, x.TopApp)
 	}
 	_ = tx.Commit()

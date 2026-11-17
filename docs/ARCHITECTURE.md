@@ -72,7 +72,7 @@ safe swap allowance = max(0, min( swap budget − swap used,
                                   disk free (important usage) − disk reserve ))
 ```
 
-"Reclaimable" is cached files (file-backed pages macOS drops instantly). The swap allowance has two limits. One is how much more overflow this Mac can take before overflow itself slows it down (the swap budget). The other is the disk room the swap files need. Unavailable inputs count as zero room; the UI says "Not available on this Mac" rather than showing a fake 0. Tests: `internal/analyzer/analyzer_test.go` (`TestHeadroom*`).
+"Reclaimable" is cached files (file-backed pages macOS drops instantly). The swap allowance has two limits. One is how much more overflow this Mac can take before overflow itself slows it down (the swap budget). The other is the disk room the swap files need. Unavailable inputs count as zero room; the UI says "Not available on this Mac" rather than showing a fake 0. Tests: `internal/analyzer/analyzer_test.go` (`TestSpareRoom*`).
 
 ## Forecast
 

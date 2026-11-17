@@ -40,8 +40,8 @@ function status(): Status {
     const crit = stage === "critical";
     return {
       ...base, state: stage, label: crit ? "Slowdown likely" : "Getting tight", rawState: stage,
-      headroom: { total: crit ? 0.6 * GB : 1.4 * GB, free: 0.2 * GB, reclaimable: 0.4 * GB, purgeable: 0, swapAllowance: 0.8 * GB },
-      headroomText: crit ? "614 MB" : "1.4 GB",
+      spareRoom: { total: crit ? 0.6 * GB : 1.4 * GB, free: 0.2 * GB, reclaimable: 0.4 * GB, purgeable: 0, swapAllowance: 0.8 * GB },
+      spareRoomText: crit ? "614 MB" : "1.4 GB",
       forecast: crit ? { confident: true, eta: 3e11, minutes: 4, text: "Slowdowns likely in about 4 minutes." }
         : { confident: true, eta: 9e11, minutes: 15, text: "Slowdowns likely in about 15 minutes." },
       runway: { memTotal: 8 * GB, inUse: 5.3 * GB, squeezed: 2.1 * GB, spare: 0.6 * GB, overflow: crit ? 3.4 * GB : 2.2 * GB,
@@ -58,8 +58,8 @@ function status(): Status {
   const na = stage === "na";
   return {
     ...base, state: "ok", label: "Plenty of room", rawState: "ok",
-    headroom: { total: 2.4 * GB, free: 0.5 * GB, reclaimable: 0.9 * GB, purgeable: 0, swapAllowance: GB },
-    headroomText: "2.4 GB", forecast: { confident: false, eta: 0, minutes: 0, text: "Steady. Nothing is filling up fast." },
+    spareRoom: { total: 2.4 * GB, free: 0.5 * GB, reclaimable: 0.9 * GB, purgeable: 0, swapAllowance: GB },
+    spareRoomText: "2.4 GB", forecast: { confident: false, eta: 0, minutes: 0, text: "Steady. Nothing is filling up fast." },
     runway: { memTotal: 8 * GB, inUse: 4.1 * GB, squeezed: 1.2 * GB, spare: 2.7 * GB, overflow: GB, diskFree: 38 * GB,
       diskTotal: 245e9, memKnown: true, diskKnown: !na, swapKnown: true },
     cpu: 12, topApps: appsOK.slice(0, 4), suggestions: [],
@@ -84,7 +84,7 @@ function timeline(range: string): Timeline {
     const swap = Math.max(0.4 * GB, demand - 6.8 * GB);
     const memUsed = Math.min(7.6 * GB, demand);
     pts.push({ time: new Date(t).toISOString(), memUsed, memTotal: 8 * GB, swapUsed: swap, diskFree: 14 * GB - swap * 0.6,
-      headroom: Math.max(0, 12 * GB - memUsed - swap), state: memUsed + swap > 11.5 * GB ? 2 : memUsed + swap > 10 * GB ? 1 : 0,
+      spareRoom: Math.max(0, 12 * GB - memUsed - swap), state: memUsed + swap > 11.5 * GB ? 2 : memUsed + swap > 10 * GB ? 1 : 0,
       cpu: 20, topApp: i % 3 ? "Google Chrome" : "Slack" });
   }
   for (const e of epAt) {

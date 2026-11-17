@@ -142,7 +142,7 @@ function renderStatus() {
   ovStatusCard.hidden = false;
   ovStatus.className = "ov-status " + st.state;
   ovLabel.textContent = st.label;
-  ovFigure.textContent = st.runway.memKnown ? st.headroomText : "—";
+  ovFigure.textContent = st.runway.memKnown ? st.spareRoomText : "—";
   ovForecast.textContent = st.runway.memKnown ? st.forecast.text : NOT_AVAILABLE;
   ovRunway.update(st.runway);
   renderMemory();
@@ -283,12 +283,12 @@ function renderMemory() {
   const th = st.thresholds;
   if (th?.swapBudget) fact(memFacts, "Overflow budget", bytes(th.swapBudget), "Swap Anti-Freeze allows before calling it tight. Learned from your Mac after a week.");
   if (th?.diskReserve) fact(memFacts, "Disk kept free", bytes(th.diskReserve), "Below this, overflow has no room to grow");
-  const hr = st.headroom;
+  const hr = st.spareRoom;
   const known = st.runway.memKnown;
   breakEls.free.textContent = known ? bytes(hr.free) : "—";
   breakEls.recl.textContent = known ? bytes(hr.reclaimable + hr.purgeable) : "—";
   breakEls.swap.textContent = st.runway.swapKnown ? bytes(hr.swapAllowance) : "—";
-  breakEls.total.textContent = known ? st.headroomText : "—";
+  breakEls.total.textContent = known ? st.spareRoomText : "—";
 }
 
 const memEmpty = h("p", { class: "empty", hidden: true }, "History starts now. Check back in an hour to see your first trend.");

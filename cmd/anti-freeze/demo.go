@@ -40,7 +40,7 @@ func seedDemoHistory(st *store.Store, memTotal uint64, now time.Time) {
 		}
 		xs = append(xs, store.Sample{Time: t, MemTotal: memTotal, MemUsed: uint64(used), MemCompressed: uint64(used * 0.2),
 			SwapUsed: uint64(swap), DiskFree: uint64(24*gb - swap*0.5), Pressure: 1 + int(state), CPU: 8 + 25*day,
-			Headroom: uint64(math.Max(0, 10*gb-demand)), State: state, TopApp: top})
+			SpareRoom: uint64(math.Max(0, 10*gb-demand)), State: state, TopApp: top})
 	}
 	_ = st.AddSamples(xs)
 	for _, sp := range spikes {
