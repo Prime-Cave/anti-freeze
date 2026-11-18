@@ -84,7 +84,10 @@ Watch it react to real memory pressure (allocates memory in a capped child proce
 make stress
 ```
 
-Step by step, including tools to install and troubleshooting: [docs/SETUP.md](docs/SETUP.md). More: [CONTRIBUTING.md](CONTRIBUTING.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/RELEASING.md](docs/RELEASING.md).
+* **Step by step**, with the tools to install and troubleshooting: [docs/SETUP.md](docs/SETUP.md).
+* **Using an AI coding agent?** SETUP.md has [a prompt you can paste](docs/SETUP.md#c-set-it-up-with-an-ai-coding-agent) to have it set everything up.
+* **How the code works**, in plain language, with a "change X → open this file" table: [docs/GUIDE.md](docs/GUIDE.md).
+* **More:** [CONTRIBUTING.md](CONTRIBUTING.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/RELEASING.md](docs/RELEASING.md).
 
 ## Security
 

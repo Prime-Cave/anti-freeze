@@ -1,6 +1,14 @@
 # Setup guide
 
-Two paths: **install the app** (no tools needed) or **build it from source**.
+Three ways in:
+
+* **A. Install the app.** No tools needed. Pick this if you just want to use Anti-Freeze.
+* **B. Build it from source.** Pick this if you want to read or change the code.
+* **C. Let an AI coding agent do B for you.** Paste one prompt into your agent.
+
+You need a Mac with macOS 13 Ventura or later (Apple Silicon or Intel). Anti-Freeze doesn't run on Windows or Linux.
+
+Once it builds, [GUIDE.md](GUIDE.md) explains how the code works and which file to open for common changes.
 
 ## A. Install the app
 
@@ -136,6 +144,64 @@ npx --prefix frontend vite frontend
 ```
 
 Open `http://localhost:5173/?state=tight` (also `ok`, `critical`, `loading`, `na`), or `/dashboard.html`, `/safety.html`. It uses mock data, with no Go side needed.
+
+## C. Set it up with an AI coding agent
+
+Any coding agent that can run terminal commands on your Mac will do: Claude Code, Codex, Cursor, GitHub Copilot's agent mode, Aider, and so on. Open it in the folder where you keep code, paste the prompt below, and approve the steps it asks about. It follows part B for you, using only demo data.
+
+The prompt tells the agent to ask before installing anything, never to use `sudo`, and to run the app only on synthetic data. That way, nothing on your Mac gets quit, moved or deleted while it sets things up.
+
+```text
+Set up the Anti-Freeze project on this Mac so I can build, run and edit it.
+Anti-Freeze is an open-source macOS menu bar app written in Go (with Wails v3)
+and a TypeScript/Vite frontend. Repository:
+https://github.com/Prime-Cave/anti-freeze
+
+Rules:
+- Explain each step in one line before you run it.
+- Never use sudo or ask for my password. If something seems to need admin
+  rights, stop and tell me what to do myself.
+- Ask me before installing or upgrading any tool, and say what and why.
+- Don't change files outside the cloned project folder, except installing
+  tools I've approved.
+- Only run the app in demo mode (ANTIFREEZE_DEMO set). Don't open the real app
+  or run "make stress" unless I ask.
+- Don't commit, push, or open pull requests.
+
+Steps:
+1. Check this is macOS 13 or later (sw_vers). If not, stop and tell me.
+2. Check the tools and their versions: Go 1.26 or later (go version),
+   Node.js 20 or later (node --version), and the Xcode command line tools
+   (xcode-select -p). For anything missing or too old, tell me and suggest
+   the fix (Homebrew: brew install go / brew install node; for Xcode tools:
+   xcode-select --install, which opens a dialog I have to click through).
+   Wait for my OK before installing.
+3. Clone the repository into the current folder and cd into it, unless it's
+   already cloned there.
+4. Read docs/SETUP.md (part B) and follow it. Build with: make app
+   This installs the frontend packages with npm ci and creates
+   build/out/Anti-Freeze.app. If the build fails, read the error, check the
+   Troubleshooting table in docs/SETUP.md, fix what you safely can, and tell
+   me what you changed.
+5. Run the tests: make test
+6. Run the app's built-in self-test on demo data:
+   ANTIFREEZE_DEMO=tight build/out/Anti-Freeze.app/Contents/MacOS/Anti-Freeze --selftest
+   It should print the dropdown and dashboard text and exit by itself.
+7. Optional, ask me first: install golangci-lint (brew install golangci-lint)
+   and run "make check", which is the full set of checks CI runs.
+8. Finish with a short report:
+   - what you installed, with versions
+   - whether the build, tests and self-test passed (quote any errors)
+   - how I run it on demo data myself:
+     ANTIFREEZE_DEMO=tight build/out/Anti-Freeze.app/Contents/MacOS/Anti-Freeze
+     (stop it with Ctrl-C)
+   - how I work on the interface in a browser:
+     npx --prefix frontend vite frontend
+     then open http://localhost:5173/?state=tight
+   - that docs/GUIDE.md explains how the code fits together.
+```
+
+If the agent gets stuck, the [Troubleshooting](#troubleshooting) table below covers the common problems. You can also paste it the exact error message.
 
 ## Troubleshooting
 
