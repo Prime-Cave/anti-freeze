@@ -42,3 +42,4 @@ frontend/dist/*
 # Local config
 *.local
 local.mk
+frontend/.dev/

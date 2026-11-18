@@ -13,7 +13,7 @@ make integration  # launches and quits a throwaway helper app through AppKit
 make stress       # allocates memory in a child process so you can watch the states change
 ```
 
-To work on the UI without the Go side, run `npx --prefix frontend vite frontend` and open `http://localhost:5173/?state=tight` (also `ok`, `critical`, `loading`, `na`). That uses synthetic mock data.
+To work on the UI without the Go side, run `npm --prefix frontend run dev` and open `http://127.0.0.1:5173/?state=tight` (also `ok`, `critical`, `loading`, `na`). That uses synthetic mock data.
 
 To run the real app on synthetic data (nothing on your Mac is read, quit or moved):
 

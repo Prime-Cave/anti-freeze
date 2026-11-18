@@ -140,10 +140,10 @@ This allocates memory in a child process, at most 1.25 × your Mac's memory by d
 ### 8. Work on the interface only (optional)
 
 ```bash
-npx --prefix frontend vite frontend
+npm --prefix frontend run dev
 ```
 
-Open `http://localhost:5173/?state=tight` (also `ok`, `critical`, `loading`, `na`), or `/dashboard.html`, `/safety.html`. It uses mock data, with no Go side needed.
+Open `http://127.0.0.1:5173/?state=tight` (also `ok`, `critical`, `loading`, `na`), or `/dashboard.html`, `/safety.html`. It uses mock data, with no Go side needed.
 
 ## C. Set it up with an AI coding agent
 
@@ -154,7 +154,7 @@ The prompt tells the agent to ask before installing anything, never to use `sudo
 ```text
 Set up the Anti-Freeze project on this Mac so I can build, run and edit it.
 Anti-Freeze is an open-source macOS menu bar app written in Go (with Wails v3)
-and a TypeScript/Vite frontend. Repository:
+and a TypeScript frontend built with esbuild. Repository:
 https://github.com/Prime-Cave/anti-freeze
 
 Rules:
@@ -196,8 +196,8 @@ Steps:
      ANTIFREEZE_DEMO=tight build/out/Anti-Freeze.app/Contents/MacOS/Anti-Freeze
      (stop it with Ctrl-C)
    - how I work on the interface in a browser:
-     npx --prefix frontend vite frontend
-     then open http://localhost:5173/?state=tight
+     npm --prefix frontend run dev
+     then open http://127.0.0.1:5173/?state=tight
    - that docs/GUIDE.md explains how the code fits together.
 ```
 

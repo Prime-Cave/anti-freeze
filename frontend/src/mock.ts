@@ -1,5 +1,5 @@
 // Development-only mock backend with synthetic data, so the UI can be built
-// and checked in a plain browser (`npx vite`, then ?state=ok|tight|critical|
+// and checked in a plain browser (`npm run dev`, then ?state=ok|tight|critical|
 // loading|na). Never included in production builds.
 import type {
   AppRow, DiskReport, Episode, MachineInfo, Point, SafetyCheck, Settings, Status, Timeline,

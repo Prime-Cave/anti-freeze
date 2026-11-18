@@ -265,7 +265,7 @@ Run these from the repository folder. They're all defined in the `Makefile`. [SE
 |---|---|
 | `make app` | Builds `build/out/Anti-Freeze.app`. Run it after any change. |
 | `ANTIFREEZE_DEMO=tight build/out/Anti-Freeze.app/Contents/MacOS/Anti-Freeze` | Runs the app with pretend data (`ok`, `tight`, `critical`, `recover`). It's safe: it never quits or moves anything. |
-| `npx --prefix frontend vite frontend` | Opens the windows in your normal browser with fake data. Best for design work. Try `localhost:5173/?state=critical`. |
+| `npm --prefix frontend run dev` | Opens the windows in your normal browser with fake data. Best for design work. Try `127.0.0.1:5173/?state=critical`. |
 | `make test` | Runs all the Go tests. Quick. |
 | `make check` | The full check-up GitHub runs: tests, lint, type checks, colour contrast. |
 | `make stress` | Fills memory on purpose so you can watch the icon change. It gives the memory back after 2 minutes, or press Ctrl-C. |

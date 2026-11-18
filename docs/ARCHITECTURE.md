@@ -6,7 +6,7 @@
 |---|---|---|
 | Language | Go (module requires **1.26+**) | The brief asked for 1.23+. Wails v3.1.0 declares `go 1.26`, so that is the real floor. |
 | UI shell | **Wails v3.1.0** (stable, released 1 Nov 2026) | v3 has a first-class system tray with an *attached window* (`SystemTray.AttachWindow`), which is exactly a menu bar icon + dropdown. It also ships a notification service backed by `UNUserNotificationCenter` and a login-item API backed by `SMAppService.mainApp`. v2 would have needed our own `NSStatusItem` + `NSPopover` bridge. Electron was ruled out. |
-| Frontend | TypeScript + Vite 6, plain CSS, no framework | Two small pages (dropdown, dashboard). Vite 6 rather than 7/8 so it builds on Node 20.12+. |
+| Frontend | TypeScript + esbuild, plain CSS, no framework | Three small pages (dropdown, dashboard, safety check). esbuild has no npm dependencies of its own, so the whole frontend toolchain is 4 packages; `frontend/scripts/build.mjs` is the build. Replaced Vite in Nov 2026 after an unfixed advisory in its file-matching dependency. |
 | System data | cgo against public macOS APIs | See "Collectors" below. |
 | Storage | SQLite via `modernc.org/sqlite` (pure Go) | No extra C toolchain needs; WAL mode. |
 
